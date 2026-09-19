@@ -313,6 +313,7 @@ pre.gcode i{color:var(--ink3);font-style:normal}
       <span class="meta" id="gmeta"></span>
       <span class="spacer"></span>
       <button type="button" class="act" id="btnCopy">Copy</button>
+      <button type="button" class="act" id="btnSaveAll" hidden>All · zip</button>
       <button type="button" class="act pri" id="btnSave">Download</button>
     </div>
     <pre class="gcode" id="gpre"></pre>
@@ -1083,6 +1084,7 @@ function run(){
 
   const sel=$('fileSel');
   sel.hidden=files.length<2;
+  $('btnSaveAll').hidden=files.length<2;
   if(!sel.hidden){
     const keep=sel.value;
     sel.innerHTML=files.map((f,i)=>`<option value="${i}">${f.name}</option>`).join('');
@@ -1402,28 +1404,36 @@ function flash(btn,txt){
   const old=btn.textContent; btn.textContent=txt; btn.disabled=true;
   setTimeout(()=>{btn.textContent=old;btn.disabled=false;},1400);
 }
-$('btnCopy').onclick=async()=>{
-  if(!STATE) return;
-  const i=$('fileSel').hidden?0:+$('fileSel').value;
-  try{ await navigator.clipboard.writeText(STATE.files[i].text); flash($('btnCopy'),'Copied'); }
-  catch(e){ flash($('btnCopy'),'Blocked'); }
-};
-$('btnSave').onclick=async()=>{
-  if(!STATE) return;
-  const {files,p}=STATE, many=files.length>1;
-  const stamp=`${p.turns}t_${p.dOd}mm`;
+const curIdx=()=>{ const s=$('fileSel'); return s.hidden?0:Math.min(+s.value||0,STATE.files.length-1); };
+
+async function deliver(list,zipName,btn){
+  const one=list.length===1;
   if(DL){
-    try{ await DL.save({filename:`coil_winding_${stamp}.zip`, data:zip(files)}); flash($('btnSave'),'Saved'); }
-    catch(err){ flash($('btnSave'), err&&err.code==='declined'?'Cancelled':'Failed'); }
+    // the claude.ai viewer only accepts an allow-listed extension and .gcode
+    // is not one of them, so even a single file goes out inside a zip
+    const name=one?list[0].name.replace(/\.[^.]+$/,'')+'.zip':zipName;
+    try{ await DL.save({filename:name, data:zip(list)}); flash(btn,'Saved'); }
+    catch(err){ flash(btn, err&&err.code==='declined'?'Cancelled':'Failed'); }
     return;
   }
-  const blob=many?zip(files):new Blob([files[0].text],{type:'text/plain'});
+  const blob=one?new Blob([list[0].text],{type:'text/plain'}):zip(list);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download=many?`coil_winding_${stamp}.zip`:files[0].name;
+  a.download=one?list[0].name:zipName;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  flash($('btnSave'),'Saved');
+  flash(btn,'Saved');
+}
+$('btnCopy').onclick=async()=>{
+  if(!STATE) return;
+  try{ await navigator.clipboard.writeText(STATE.files[curIdx()].text); flash($('btnCopy'),'Copied'); }
+  catch(e){ flash($('btnCopy'),'Blocked'); }
+};
+$('btnSave').onclick=()=>{ if(STATE) deliver([STATE.files[curIdx()]],'',$('btnSave')); };
+$('btnSaveAll').onclick=()=>{
+  if(!STATE) return;
+  const p=STATE.p;
+  deliver(STATE.files,`coil_winding_${p.turns}t_${p.dOd}mm.zip`,$('btnSaveAll'));
 };
 
 let pend=null;

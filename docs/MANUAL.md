@@ -353,7 +353,9 @@ Straight runs are emitted as a single `G1` each, since a straight segment with a
 | `coil_<turns>t_<Ø>mm.gcode` | Always | The winding job |
 | `coil_T01.gcode` … | One file per tooth on | The job split by tooth |
 
-Downloads arrive as a zip so the files keep their `.gcode` extension.
+**Download** saves whichever file is chosen in the dropdown next to the G-code heading; **All · zip** saves every file at once. **Copy** copies the chosen file to the clipboard.
+
+One quirk worth knowing: when the tool runs as a hosted artifact on claude.ai, the viewer sandbox only accepts a fixed list of file extensions and `.gcode` is not among them — so downloads there arrive inside a zip even when you asked for a single file. Running from GitHub Pages or from a local copy of `index.html` has no such restriction, and a single file downloads as a plain `.gcode` under its own name.
 
 ---
 
