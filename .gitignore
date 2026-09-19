@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Linux
+*~
+.directory
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Generated G-code — output of the tool, not source.
+# Remove these lines, or add an exception, if you want to commit
+# reference files (e.g. !examples/**/*.gcode).
+*.gcode
+*.gco
+*.g
+coil_winding_*.zip
+
+# Tooling, should anyone add a build step later
+node_modules/
+package-lock.json
+__pycache__/
+.venv/

@@ -1,0 +1,1437 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,sans-serif;background:#f1f3ef}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Axial Coil Winder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f1f3ef; --panel:#ffffff; --panel2:#e8ebe4; --sunk:#dfe3da;
+  --line:#d2d7ca; --line2:#bcc3b3;
+  --ink:#1a1e20; --ink2:#5b6461; --ink3:#848d88;
+  --copper:#b1552a; --copper2:#8b3f1d;
+  --steel:#5b6d79;
+  --ok:#3a7350; --warn:#8e6410; --bad:#9f3527;
+  --okBg:#e2efe5; --warnBg:#f6ecd6; --badBg:#f7e1dd;
+  --view:#13161a;
+  --r:3px;
+  --sans:"Barlow",ui-sans-serif,system-ui,sans-serif;
+  --cond:"Barlow Condensed","Barlow",ui-sans-serif,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#131719; --panel:#1b1f22; --panel2:#22272a; --sunk:#171b1d;
+    --line:#2f3639; --line2:#414a4e;
+    --ink:#e5e9e5; --ink2:#9ba5a1; --ink3:#78827e;
+    --copper:#d77a45; --copper2:#b1552a;
+    --steel:#7e93a1;
+    --ok:#6fb98a; --warn:#d1a24b; --bad:#d9705f;
+    --okBg:#1c2b22; --warnBg:#2e2717; --badBg:#301d1a;
+    --view:#0f1215;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131719; --panel:#1b1f22; --panel2:#22272a; --sunk:#171b1d;
+  --line:#2f3639; --line2:#414a4e;
+  --ink:#e5e9e5; --ink2:#9ba5a1; --ink3:#78827e;
+  --copper:#d77a45; --copper2:#b1552a;
+  --steel:#7e93a1;
+  --ok:#6fb98a; --warn:#d1a24b; --bad:#d9705f;
+  --okBg:#1c2b22; --warnBg:#2e2717; --badBg:#301d1a;
+  --view:#0f1215;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{padding:0 16px;padding-block:18px 40px;max-width:1440px;margin:0 auto}
+
+.mast{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:18px}
+.mast h1{font-family:var(--cond);font-weight:700;font-size:30px;letter-spacing:.01em;margin:0;line-height:1;text-transform:uppercase}
+.mast h1 em{font-style:normal;color:var(--copper)}
+.mast p{margin:4px 0 0;color:var(--ink2);font-size:13px;max-width:58ch}
+.machine{font-family:var(--mono);font-size:11px;color:var(--ink3);text-align:right;line-height:1.7;white-space:nowrap}
+.machine b{color:var(--ink2);font-weight:500}
+
+.cols{display:grid;grid-template-columns:336px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:1000px){.cols{grid-template-columns:1fr}.rail{order:2}.stage{order:1}}
+
+.rail{display:flex;flex-direction:column;gap:10px}
+fieldset{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);margin:0;padding:10px 12px 12px}
+legend{font-family:var(--cond);font-weight:600;text-transform:uppercase;letter-spacing:.09em;font-size:12px;
+  color:var(--ink2);padding:0 6px;margin-left:-4px}
+legend .n{color:var(--copper);font-family:var(--mono);font-size:10px;margin-right:5px}
+.row{display:grid;grid-template-columns:1fr 96px;align-items:center;gap:6px 8px;padding:2.5px 0}
+.row label{font-size:12.5px;color:var(--ink2)}
+.row label b{color:var(--ink);font-weight:500}
+.u{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+input[type=number],input[type=text],select{width:100%;font-family:var(--mono);font-size:12.5px;
+  padding:4px 6px;border:1px solid var(--line2);border-radius:2px;background:var(--panel);color:var(--ink);
+  text-align:right}
+select,input[type=text]{text-align:left}
+input:disabled{background:var(--panel2);color:var(--ink3)}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--copper);outline-offset:1px}
+.chk{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12.5px;color:var(--ink2);cursor:pointer}
+.chk input{accent-color:var(--copper);margin:0;flex:none}
+.sub{grid-column:1/-1;font-size:11px;color:var(--ink3);margin:2px 0 4px;line-height:1.45}
+.sub code{font-family:var(--mono);font-size:10.5px}
+hr.sep{border:0;border-top:1px dashed var(--line);margin:9px -12px 8px}
+.derived{font-family:var(--mono);font-size:11px;color:var(--ink2);background:var(--panel2);
+  border-radius:2px;padding:6px 8px;margin-top:8px;line-height:1.7}
+.derived b{color:var(--copper);font-weight:500}
+.derived .badt{color:var(--bad)}
+.derived .warnt{color:var(--warn)}
+.pthead,.ptrow{display:grid;grid-template-columns:20px 1fr 1fr;gap:4px;align-items:center}
+.pthead.z,.ptrow.z{grid-template-columns:20px 1fr 1fr 1fr}
+.ptrow{padding:1.5px 0}
+.pthead{font-family:var(--cond);font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--ink3);padding:4px 0 2px}
+.ptrow>span{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.ptrow input{padding:3px 5px;font-size:11.5px}
+button.mini{font-family:var(--cond);text-transform:uppercase;letter-spacing:.07em;font-size:10.5px;font-weight:600;
+  border:1px dashed var(--line2);background:none;color:var(--ink2);padding:2px 9px;border-radius:2px;cursor:pointer;margin-top:5px}
+button.mini:hover{border-style:solid;color:var(--ink)}
+
+.stage{display:flex;flex-direction:column;gap:14px}
+.viewbox{background:var(--view);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.vbar{display:flex;align-items:center;gap:4px;padding:6px 8px;border-bottom:1px solid #2a3138;flex-wrap:wrap}
+.tab{font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;font-size:12px;font-weight:600;
+  background:none;border:1px solid transparent;color:#8d9aa4;padding:3px 10px;border-radius:2px;cursor:pointer}
+.tab[aria-selected=true]{color:#fff;border-color:#3b454d;background:#1e252b}
+.vbar .spacer{flex:1}
+.vbar .hint{font-family:var(--mono);font-size:10px;color:#5d6871}
+canvas{display:block;width:100%;height:450px;touch-action:none}
+@media (max-width:1000px){canvas{height:340px}}
+
+.readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.ro{background:var(--panel);padding:8px 10px}
+.ro dt{font-family:var(--cond);text-transform:uppercase;letter-spacing:.07em;font-size:10.5px;color:var(--ink3);margin:0}
+.ro dd{margin:1px 0 0;font-family:var(--mono);font-size:16px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink)}
+.ro dd s{text-decoration:none;font-size:10.5px;color:var(--ink3);margin-left:2px}
+.ro.hot dd{color:var(--bad)}
+
+.notes{display:flex;flex-direction:column;gap:6px}
+.note{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;padding:7px 10px;border-radius:2px;border-left:3px solid}
+.note .k{font-family:var(--cond);text-transform:uppercase;letter-spacing:.07em;font-weight:600;font-size:11px;flex:none;padding-top:1px}
+.n-bad{background:var(--badBg);border-color:var(--bad);color:var(--bad)}
+.n-warn{background:var(--warnBg);border-color:var(--warn);color:var(--warn)}
+.n-ok{background:var(--okBg);border-color:var(--ok);color:var(--ok)}
+.note span.t{color:var(--ink)}
+
+.out{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden}
+.outbar{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.outbar h2{font-family:var(--cond);text-transform:uppercase;letter-spacing:.09em;font-size:13px;margin:0;font-weight:600}
+.outbar .meta{font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.outbar .spacer{flex:1}
+.outbar select{width:auto;min-width:150px}
+button.act{font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;font-weight:600;font-size:12px;
+  border:1px solid var(--line2);background:var(--panel2);color:var(--ink);padding:5px 12px;border-radius:2px;cursor:pointer}
+button.act:hover{border-color:var(--ink3)}
+button.act.pri{background:var(--copper);border-color:var(--copper2);color:#fff}
+button.act.pri:hover{background:var(--copper2)}
+button.act[disabled]{opacity:.45;cursor:not-allowed}
+pre.gcode{margin:0;padding:10px 12px;font-family:var(--mono);font-size:11.5px;line-height:1.55;
+  background:var(--sunk);color:var(--ink2);max-height:300px;overflow:auto;white-space:pre}
+pre.gcode b{color:var(--copper);font-weight:500}
+pre.gcode i{color:var(--ink3);font-style:normal}
+
+.foot{margin-top:22px;padding-top:12px;border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px 26px}
+.foot section h3{font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;font-size:11.5px;
+  color:var(--ink2);margin:0 0 4px}
+.foot p{margin:0 0 6px;font-size:12.5px;color:var(--ink3);line-height:1.5}
+.foot code{font-family:var(--mono);font-size:11.5px;color:var(--ink2)}
+.credit{margin:18px 0 0;padding-top:11px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:11px;color:var(--ink3);text-align:center}
+.credit a{color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--line2)}
+.credit a:hover{color:var(--copper);border-color:var(--copper)}
+.credit b{color:var(--ink2);font-weight:500}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+</head><body>
+<div class="wrap">
+
+<header class="mast">
+  <div>
+    <h1>Axial Coil <em>Winder</em></h1>
+    <p>Needle-winding G-code for axial-flux stators. The core sits on the bed; the hotend carries the wire guide and orbits each tooth in X&#8209;Y, climbing Z one wire pitch per turn.</p>
+  </div>
+  <div class="machine" id="machineTag"></div>
+</header>
+
+<div class="cols">
+
+<form class="rail" id="form" autocomplete="off">
+
+  <fieldset>
+    <legend><span class="n">01</span>Machine</legend>
+    <div class="row"><label for="rOut">Outer radius <b>r₂</b></label><input type="number" id="rOut" value="72" step="0.5" min="2"></div>
+    <div class="row"><label for="rIn">Inner radius <b>r₁</b></label><input type="number" id="rIn" value="45" step="0.5" min="1"></div>
+    <div class="row"><label for="nTeeth">Tooth count <b>N</b></label><input type="number" id="nTeeth" value="12" step="1" min="1"></div>
+    <div class="row"><label for="wMode">Tooth width from</label><select id="wMode">
+      <option value="ratio">tooth / slot pitch</option>
+      <option value="angle">tooth angle</option>
+      <option value="width">measured widths</option></select></div>
+    <div class="row" id="rowRatio"><label for="tRatio">&nbsp;&nbsp;↳ ratio</label><input type="number" id="tRatio" value="0.5" step="0.01" min="0.05" max="0.98"></div>
+    <div class="row" id="rowAngle" hidden><label for="tAngle">&nbsp;&nbsp;↳ span <span class="u">°</span></label><input type="number" id="tAngle" value="15" step="0.1" min="0.5"></div>
+    <div class="row" id="rowWIn" hidden><label for="wIn">&nbsp;&nbsp;↳ width at r₁</label><input type="number" id="wIn" value="11.75" step="0.1" min="0.5"></div>
+    <div class="row" id="rowWOut" hidden><label for="wOut">&nbsp;&nbsp;↳ width at r₂</label><input type="number" id="wOut" value="18.79" step="0.1" min="0.5"></div>
+    <div class="row"><label for="edgeMode">Inner / outer edges</label><select id="edgeMode">
+      <option value="arc">arcs (cut on radius)</option>
+      <option value="chord">straight (chords)</option></select></div>
+    <div class="row"><label for="rc">Corner radius</label><input type="number" id="rc" value="1.5" step="0.1" min="0"></div>
+    <div class="row"><label for="winH">Tooth height <b>h</b></label><input type="number" id="winH" value="18" step="0.1" min="1"></div>
+    <div class="derived" id="geoOut"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="n">02</span>Wire</legend>
+    <div class="row"><label for="awg">Preset</label><select id="awg"></select></div>
+    <div class="row"><label for="dBare">Bare copper Ø</label><input type="number" id="dBare" value="0.8" step="0.01" min="0.05"></div>
+    <div class="row"><label for="dOd">Insulated Ø</label><input type="number" id="dOd" value="0.87" step="0.01" min="0.05"></div>
+    <div class="row"><label for="turns">Turns</label><input type="number" id="turns" value="60" step="1" min="1"></div>
+    <div class="row"><label for="layerK">Layer pitch ×Ø</label><input type="number" id="layerK" value="1" step="0.01" min="0.5" max="1.2"></div>
+    <div class="row"><label for="tplMode">Turns / layer</label><select id="tplMode"><option value="auto">auto (fit window)</option><option value="man">manual</option></select></div>
+    <div class="row" id="tplRow" hidden><label for="tplMan">&nbsp;&nbsp;↳ per layer</label><input type="number" id="tplMan" value="19" step="1" min="1"></div>
+    <p class="sub">0.87 ≈ nested (orthocyclic) layer pitch; 1.0 = square stacking.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="n">03</span>Needle</legend>
+    <div class="row"><label for="nR">Tip outer radius</label><input type="number" id="nR" value="1.2" step="0.05" min="0"></div>
+    <div class="row"><label for="clr">Extra standoff</label><input type="number" id="clr" value="0.15" step="0.05" min="0"></div>
+    <div class="row"><label for="stepDeg">Layer step-out <span class="u">°</span></label><input type="number" id="stepDeg" value="60" step="5" min="10" max="180"></div>
+    <p class="sub">Path offset from the tooth face for layer <i>k</i> = tip radius + Ø/2 + k·pitch + standoff.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="n">04</span>Alignment</legend>
+    <p class="sub" style="margin-top:0">Lift Z by hand, <code>G28 X Y</code>, then jog the needle in until the continuity tester beeps and read X/Y off the LCD. Approach every point from outside, so backlash cancels in the centre.</p>
+    <label class="chk"><input type="checkbox" id="alCen"> Centre from rim touches</label>
+    <div id="alCenBox" hidden>
+      <div class="row"><label for="rimR">Rim radius you touch</label><input type="number" id="rimR" value="72" step="0.5" min="1"></div>
+      <div class="pthead"><span></span><span>X mm</span><span>Y mm</span></div>
+      <div id="rimPts"></div>
+      <button type="button" class="mini" id="rimAdd">+ point</button>
+      <div class="derived" id="rimOut">Three points minimum; five or six gives you residuals worth reading.</div>
+    </div>
+    <hr class="sep">
+    <label class="chk"><input type="checkbox" id="alAng"> Angle from tooth-1 flanks</label>
+    <div id="alAngBox" hidden>
+      <div class="pthead"><span></span><span>X mm</span><span>Y mm</span></div>
+      <div id="flankPts"></div>
+      <div class="derived" id="flankOut">Touch both flanks of tooth 1 at roughly the same radius, near the outer edge.</div>
+    </div>
+    <hr class="sep">
+    <label class="chk"><input type="checkbox" id="alZ"> Per-tooth Z from a 3-point plane</label>
+    <div id="alZBox" hidden>
+      <div class="pthead z"><span></span><span>X mm</span><span>Y mm</span><span>Z mm</span></div>
+      <div id="zPts"></div>
+      <div class="derived" id="zOut">Zero Z on the first yoke touch, then read Z at the other two.</div>
+    </div>
+    <hr class="sep">
+    <label class="chk"><input type="checkbox" id="optHelper"> Add a touch-off helper file</label>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="n">05</span>Placement</legend>
+    <div class="row"><label for="cx">Machine centre X</label><input type="number" id="cx" value="110" step="0.1"></div>
+    <div class="row"><label for="cy">Machine centre Y</label><input type="number" id="cy" value="110" step="0.1"></div>
+    <div class="row"><label for="ang0">Tooth 1 angle <span class="u">°</span></label><input type="number" id="ang0" value="90" step="0.1"></div>
+    <div class="row"><label for="teethSel">Wind teeth</label><input type="text" id="teethSel" value="1-12"></div>
+    <p class="sub">Angles run counter-clockwise from +X. Ranges like <code>1-12</code> or <code>1,3,5</code>.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="n">06</span>Heights</legend>
+    <div class="row"><label for="z0">Window floor Z</label><input type="number" id="z0" value="0" step="0.1"></div>
+    <div class="row"><label for="zSafe">Safe / travel Z</label><input type="number" id="zSafe" value="45" step="1"></div>
+    <div class="row"><label for="parkX">Park X</label><input type="number" id="parkX" value="5" step="1"></div>
+    <div class="row"><label for="parkY">Park Y</label><input type="number" id="parkY" value="210" step="1"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="n">07</span>Motion</legend>
+    <div class="row"><label for="rate">Speed</label><select id="rate"><option value="rpm">turns / min</option><option value="feed">feedrate mm/min</option></select></div>
+    <div class="row"><label for="rateVal">&nbsp;&nbsp;↳ value</label><input type="number" id="rateVal" value="20" step="1" min="0.1"></div>
+    <div class="row"><label for="cornerPct">Corner feed <span class="u">%</span></label><input type="number" id="cornerPct" value="60" step="5" min="10" max="100"></div>
+    <div class="row"><label for="travelF">Travel feed</label><input type="number" id="travelF" value="3000" step="100" min="100"></div>
+    <div class="row"><label for="checkF">Check-lap feed</label><input type="number" id="checkF" value="600" step="50" min="60"></div>
+    <div class="row"><label for="accel">Accel <span class="u">mm/s²</span></label><input type="number" id="accel" value="400" step="50" min="50"></div>
+    <div class="row"><label for="jerkMode">Corner smoothing</label><select id="jerkMode"><option value="classic">classic jerk (M205 X/Y)</option><option value="jd">junction dev. (M205 J)</option><option value="none">don't set</option></select></div>
+    <div class="row"><label for="jerkVal">&nbsp;&nbsp;↳ value</label><input type="number" id="jerkVal" value="5" step="0.1" min="0.01"></div>
+    <div class="row"><label for="segDeg">Curve resolution <span class="u">°</span></label><input type="number" id="segDeg" value="8" step="1" min="2" max="45"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="n">08</span>Output</legend>
+    <div class="row"><label for="startSeq">Start sequence</label><select id="startSeq"><option value="home">home X/Y (Z by hand)</option><option value="none">no homing — G92 only</option></select></div>
+    <label class="chk"><input type="checkbox" id="optDry" checked> Clearance lap before each tooth</label>
+    <label class="chk"><input type="checkbox" id="optAlign" checked> Alignment lap file (marker, once)</label>
+    <div class="row"><label for="alignWhich">&nbsp;&nbsp;↳ trace</label><select id="alignWhich">
+      <option value="2">two opposite teeth</option>
+      <option value="1">first tooth only</option>
+      <option value="all">every selected tooth</option></select></div>
+    <div class="row"><label for="markZ">&nbsp;&nbsp;↳ marker Z</label><input type="number" id="markZ" value="0" step="0.05"></div>
+    <label class="chk"><input type="checkbox" id="optM117" checked> LCD progress (M117)</label>
+    <label class="chk"><input type="checkbox" id="optPause" checked> Pause between teeth (M0)</label>
+    <label class="chk"><input type="checkbox" id="optLimits" checked> Write motion limits (M201/M204/M205)</label>
+    <label class="chk"><input type="checkbox" id="optSplit"> One file per tooth</label>
+    <label class="chk"><input type="checkbox" id="optBeep" checked> Beep when finished</label>
+    <hr class="sep">
+    <div class="row"><label for="bedX">Bed X limit</label><input type="number" id="bedX" value="220" step="1"></div>
+    <div class="row"><label for="bedY">Bed Y limit</label><input type="number" id="bedY" value="220" step="1"></div>
+    <div class="row"><label for="bedZ">Z limit</label><input type="number" id="bedZ" value="250" step="1"></div>
+  </fieldset>
+</form>
+
+<div class="stage">
+
+  <div class="viewbox">
+    <div class="vbar">
+      <button type="button" class="tab" id="tab3d" aria-selected="true">Coil</button>
+      <button type="button" class="tab" id="tabTop" aria-selected="false">Slot</button>
+      <button type="button" class="tab" id="tabBed" aria-selected="false">Bed</button>
+      <span class="spacer"></span>
+      <span class="hint" id="viewHint">drag to orbit · shift-drag to pan · wheel to zoom</span>
+    </div>
+    <canvas id="cv"></canvas>
+  </div>
+
+  <dl class="readouts" id="readouts"></dl>
+
+  <div class="notes" id="notes"></div>
+
+  <div class="out">
+    <div class="outbar">
+      <h2>G-code</h2>
+      <select id="fileSel" hidden></select>
+      <span class="meta" id="gmeta"></span>
+      <span class="spacer"></span>
+      <button type="button" class="act" id="btnCopy">Copy</button>
+      <button type="button" class="act pri" id="btnSave">Download</button>
+    </div>
+    <pre class="gcode" id="gpre"></pre>
+  </div>
+
+  <div class="foot">
+    <section>
+      <h3>Setting the datum</h3>
+      <p>Lift Z clear by hand, then <code>G28 X Y</code> — homing X and Y never moves Z on an Ender 3, so it is safe with the core clamped. Only <code>G28 Z</code> is dangerous. Touch the yoke face and <code>G92 Z0</code>; leave X and Y in true machine coordinates and let the alignment panel find the centre.</p>
+    </section>
+    <section>
+      <h3>Two laps, two different jobs</h3>
+      <p>The <b>alignment lap</b> is its own file: a marker in the guide, layer 1's path at the yoke face, where the standoff is tightest and a datum error shows up worst. The <b>clearance lap</b> runs before each tooth with the needle fitted, tracing the widest loop at the finished height — the one path that comes closest to the neighbours and the clamps. Both run at the check-lap feed rather than travel speed, so you can watch them and still reach the stop.</p>
+    </section>
+    <section>
+      <h3>Where it gets tight</h3>
+      <p>Slot pitch is smallest at the inner radius, so coils collide there first and the needle has to pass through whatever gap is left. The clearance figure is a true minimum over the whole path, not an estimate at one radius.</p>
+    </section>
+    <section>
+      <h3>Wire twist</h3>
+      <p>A needle winder puts one twist into the wire per turn, because the guide orbits and the spool does not. Feed from a spool on a swivel, or let a long free length above the guide absorb it.</p>
+    </section>
+    <section>
+      <h3>Two different fill figures</h3>
+      <p><b>Slot fill</b> is the conventional one: both coil sides in a slot, over the slot area at the mean radius (slot width × tooth height). <b>Bundle fill</b> is how tightly the wire packs inside one coil's own cross-section — build × height — and depends on layer pitch, not on the machine. Coil build is measured normal to the tooth face, so it runs tangentially at the flanks and radially only at the two ends.</p>
+    </section>
+    <section>
+      <h3>What the numbers assume</h3>
+      <p>ρ<sub>Cu</sub>&nbsp;=&nbsp;1.724×10⁻⁸&nbsp;Ω·m at 20&nbsp;°C, scaled by 0.00393/K. Wire length is the summed needle path, so it runs slightly long against the true conductor centreline. Time ignores acceleration and is optimistic.</p>
+    </section>
+  </div>
+
+  <p class="credit">
+    <b>Axial Coil Winder</b> · MIT licence ·
+    <a href="https://github.com/odtu/axial-flux-coil-winder" target="_blank" rel="noopener">source &amp; manual on GitHub</a> ·
+    <a href="http://keysan.me" target="_blank" rel="noopener">Ozan Keysan</a>
+  </p>
+</div>
+</div>
+</div>
+
+<script>
+"use strict";
+const TAU=Math.PI*2, D2R=Math.PI/180, R2D=180/Math.PI;
+const f3=v=>(Math.abs(v)<5e-4?0:v).toFixed(3);
+const $=id=>document.getElementById(id);
+
+/* ============================================================
+   tooth profile — machine-centred frame, tooth centred on +Y.
+   Every point carries its outward unit normal, so the needle path
+   for offset t is simply  P + t·n̂  (exact for lines, arcs and fillets).
+   ============================================================ */
+function meet(a,b,near){
+  if(a.type==='line'&&b.type==='line'){
+    const d1=[-a.n[1],a.n[0]], d2=[-b.n[1],b.n[0]];
+    const den=d1[0]*d2[1]-d1[1]*d2[0];
+    if(Math.abs(den)<1e-12) return null;
+    const ex=b.p[0]-a.p[0], ey=b.p[1]-a.p[1];
+    const s=(ex*d2[1]-ey*d2[0])/den;
+    return [a.p[0]+d1[0]*s, a.p[1]+d1[1]*s];
+  }
+  const L=a.type==='line'?a:b, C=a.type==='line'?b:a;
+  const k=L.p[0]*L.n[0]+L.p[1]*L.n[1];
+  const disc=C.R*C.R-k*k;
+  if(disc<0) return null;
+  const s=Math.sqrt(disc), t=[-L.n[1],L.n[0]];
+  const c1=[k*L.n[0]+s*t[0], k*L.n[1]+s*t[1]];
+  const c2=[k*L.n[0]-s*t[0], k*L.n[1]-s*t[1]];
+  const d=p=>(p[0]-near[0])**2+(p[1]-near[1])**2;
+  return d(c1)<d(c2)?c1:c2;
+}
+const inset=(s,d)=> s.type==='line'
+  ? {type:'line', p:[s.p[0]-s.n[0]*d, s.p[1]-s.n[1]*d], n:s.n}
+  : {type:'circ', R:s.R-s.side*d, side:s.side};
+
+function makeProfile(g){
+  const {rIn,rOut,aIn,aOut,rc,arcEdges,segDeg}=g;
+  const H=Math.PI/2, P=(r,a)=>[r*Math.cos(a), r*Math.sin(a)];
+  const Pir=P(rIn,H-aIn), Por=P(rOut,H-aOut), Pol=P(rOut,H+aOut), Pil=P(rIn,H+aIn);
+  const lineSeg=(p,q)=>{const dx=q[0]-p[0],dy=q[1]-p[1],l=Math.hypot(dx,dy);
+                        return {type:'line',p:p.slice(),n:[dy/l,-dx/l]};};
+  const segs=[
+    lineSeg(Pir,Por),                                        // right flank
+    arcEdges?{type:'circ',R:rOut,side:1}:lineSeg(Por,Pol),   // outer edge
+    lineSeg(Pol,Pil),                                        // left flank
+    arcEdges?{type:'circ',R:rIn,side:-1}:lineSeg(Pil,Pir),   // inner edge
+  ];
+  const near=[Por,Pol,Pil,Pir];                              // sharp corner i joins seg i, i+1
+  const rcc=Math.max(rc,1e-4);
+  const C=[],Ta=[],Tb=[],Na=[],Nb=[];
+  for(let i=0;i<4;i++){
+    const s1=segs[i], s2=segs[(i+1)%4];
+    const c=meet(inset(s1,rcc),inset(s2,rcc),near[i]);
+    if(!c) throw new Error('Corner radius too large for this tooth.');
+    C.push(c);
+    const tp=s=>{
+      if(s.type==='line') return [[c[0]+rcc*s.n[0], c[1]+rcc*s.n[1]], s.n.slice()];
+      const m=Math.hypot(c[0],c[1]);
+      return [[c[0]/m*s.R, c[1]/m*s.R], [s.side*c[0]/m, s.side*c[1]/m]];
+    };
+    const [ta,na]=tp(s1), [tb,nb]=tp(s2);
+    Ta.push(ta); Na.push(na); Tb.push(tb); Nb.push(nb);
+  }
+  const prof=[], step=segDeg*D2R;
+  const push=(x,y,nx,ny,k)=>prof.push({x,y,nx,ny,k});
+  for(let i=0;i<4;i++){
+    const s=segs[i];
+    const from=Tb[(i+3)%4], fromN=Nb[(i+3)%4];   // leaving the previous fillet
+    const to=Ta[i],        toN=Na[i];            // entering this fillet
+    if(s.type==='line'){
+      push(from[0],from[1],fromN[0],fromN[1],0);
+      push(to[0],to[1],toN[0],toN[1],0);
+    }else{
+      let a0=Math.atan2(from[1],from[0]), a1=Math.atan2(to[1],to[0]);
+      let sw=a1-a0;
+      if(s.side>0){ while(sw<0)sw+=TAU; while(sw>=TAU)sw-=TAU; }   // outer arc: CCW
+      else        { while(sw>0)sw-=TAU; while(sw<=-TAU)sw+=TAU; }  // inner arc: CW
+      const n=Math.max(2,Math.ceil(Math.abs(sw)/step));
+      for(let j=0;j<=n;j++){
+        const a=a0+sw*j/n;
+        push(s.R*Math.cos(a), s.R*Math.sin(a), s.side*Math.cos(a), s.side*Math.sin(a),0);
+      }
+    }
+    // fillet i: sweep the normal CCW from Na[i] to Nb[i]
+    let b0=Math.atan2(Na[i][1],Na[i][0]), b1=Math.atan2(Nb[i][1],Nb[i][0]);
+    let bs=b1-b0; while(bs<0)bs+=TAU; while(bs>=TAU)bs-=TAU;
+    const m=Math.max(2,Math.ceil(bs/step));
+    for(let j=0;j<=m;j++){
+      const a=b0+bs*j/m;
+      push(C[i][0]+rcc*Math.cos(a), C[i][1]+rcc*Math.sin(a), Math.cos(a), Math.sin(a), 1);
+    }
+  }
+  // drop consecutive duplicates
+  const out=[];
+  for(const q of prof){
+    const l=out[out.length-1];
+    if(l && Math.hypot(q.x-l.x,q.y-l.y)<1e-9 && Math.hypot(q.nx-l.nx,q.ny-l.ny)<1e-9) continue;
+    out.push(q);
+  }
+  return out;
+}
+
+function offsetLoop(prof,t){
+  const pts=[],cur=[];
+  for(const q of prof){
+    const x=q.x+t*q.nx, y=q.y+t*q.ny;
+    const l=pts[pts.length-1];
+    if(l && Math.hypot(x-l[0],y-l[1])<1e-7) continue;
+    pts.push([x,y]); cur.push(q.k);
+  }
+  const n=pts.length, cum=new Float64Array(n+1);
+  for(let i=0;i<n;i++){
+    const a=pts[i], b=pts[(i+1)%n];
+    cum[i+1]=cum[i]+Math.hypot(b[0]-a[0],b[1]-a[1]);
+  }
+  const total=cum[n], s=new Float64Array(n);
+  for(let i=0;i<n;i++) s[i]=cum[i]/total;
+  return {pts,s,cum,total,n,corner:cur,t};
+}
+function loopAt(L,s){
+  s-=Math.floor(s);
+  const target=s*L.total;
+  let lo=0,hi=L.n;
+  while(lo<hi-1){ const m=(lo+hi)>>1; if(L.cum[m]<=target) lo=m; else hi=m; }
+  const a=L.pts[lo], b=L.pts[(lo+1)%L.n];
+  const seg=L.cum[lo+1]-L.cum[lo];
+  const f=seg>1e-12?(target-L.cum[lo])/seg:0;
+  return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f, L.corner[lo]||L.corner[(lo+1)%L.n]];
+}
+function spanS(L,s0,s1){
+  const res=[s0];
+  let base=Math.floor(s0), i=0;
+  while(i<L.n && base+L.s[i]<=s0+1e-12) i++;
+  if(i>=L.n){ base+=1; i=0; }
+  let cur=base+L.s[i], guard=0;
+  while(cur<s1-1e-12 && guard++<2e5){
+    res.push(cur);
+    i++; if(i>=L.n){ i=0; base+=1; }
+    cur=base+L.s[i];
+  }
+  res.push(s1);
+  return res;
+}
+
+/* ============================================================
+   least squares — circle and plane
+   ============================================================ */
+function solve3(A,b){
+  const M=A.map((r,i)=>[...r,b[i]]);
+  for(let c=0;c<3;c++){
+    let p=c; for(let r=c+1;r<3;r++) if(Math.abs(M[r][c])>Math.abs(M[p][c])) p=r;
+    if(Math.abs(M[p][c])<1e-12) return null;
+    [M[c],M[p]]=[M[p],M[c]];
+    for(let r=0;r<3;r++){ if(r===c) continue;
+      const f=M[r][c]/M[c][c];
+      for(let k=c;k<4;k++) M[r][k]-=f*M[c][k];
+    }
+  }
+  return [M[0][3]/M[0][0],M[1][3]/M[1][1],M[2][3]/M[2][2]];
+}
+function fitCircle(P){
+  if(P.length<3) return null;
+  let Sx=0,Sy=0,Sxx=0,Syy=0,Sxy=0,Sxz=0,Syz=0,Sz=0;
+  for(const [x,y] of P){ const z=x*x+y*y;
+    Sx+=x;Sy+=y;Sxx+=x*x;Syy+=y*y;Sxy+=x*y;Sxz+=x*z;Syz+=y*z;Sz+=z; }
+  const s=solve3([[Sxx,Sxy,Sx],[Sxy,Syy,Sy],[Sx,Sy,P.length]],[-Sxz,-Syz,-Sz]);
+  if(!s) return null;
+  const cx=-s[0]/2, cy=-s[1]/2, r2=cx*cx+cy*cy-s[2];
+  if(!(r2>0)) return null;
+  const R=Math.sqrt(r2);
+  const res=P.map(([x,y])=>Math.hypot(x-cx,y-cy)-R);
+  return {cx,cy,R,res,maxRes:Math.max(...res.map(Math.abs))};
+}
+function fitPlane(P){
+  if(P.length<3) return null;
+  let Sx=0,Sy=0,Sxx=0,Syy=0,Sxy=0,Sxz=0,Syz=0,Sz=0;
+  for(const [x,y,z] of P){
+    Sx+=x;Sy+=y;Sxx+=x*x;Syy+=y*y;Sxy+=x*y;Sxz+=x*z;Syz+=y*z;Sz+=z; }
+  const s=solve3([[Sxx,Sxy,Sx],[Sxy,Syy,Sy],[Sx,Sy,P.length]],[Sxz,Syz,Sz]);
+  return s?{a:s[0],b:s[1],c:s[2]}:null;
+}
+
+/* ============================================================
+   wire presets
+   ============================================================ */
+const AWG=[]; for(let g=14;g<=36;g++) AWG.push({label:`AWG ${g}`, bare:Math.round(0.127*Math.pow(92,(36-g)/39)*1000)/1000});
+const METRIC=[0.15,0.2,0.25,0.3,0.4,0.5,0.6,0.71,0.8,0.9,1.0,1.12,1.25,1.4,1.6,1.8,2.0].map(d=>({label:`Ø ${d.toFixed(2)} mm`,bare:d}));
+const grade2=d=>Math.round((d*1.085+0.022)*1000)/1000;
+(function(){
+  const sel=$('awg');
+  sel.appendChild(Object.assign(document.createElement('option'),{value:'',textContent:'— custom —'}));
+  const gm=document.createElement('optgroup'); gm.label='Metric (IEC grade 2)';
+  METRIC.forEach((w,i)=>gm.appendChild(Object.assign(document.createElement('option'),{value:'m'+i,textContent:w.label})));
+  const ga=document.createElement('optgroup'); ga.label='AWG (heavy build)';
+  AWG.forEach((w,i)=>ga.appendChild(Object.assign(document.createElement('option'),{value:'a'+i,textContent:`${w.label} · ${w.bare.toFixed(3)} mm`})));
+  sel.append(gm,ga);
+  sel.addEventListener('change',()=>{
+    if(!sel.value) return;
+    const w=(sel.value[0]==='m'?METRIC:AWG)[+sel.value.slice(1)];
+    $('dBare').value=w.bare; $('dOd').value=grade2(w.bare); run();
+  });
+})();
+
+/* ============================================================
+   touch-point tables
+   ============================================================ */
+function ptRow(host,label,z){
+  const d=document.createElement('div');
+  d.className='ptrow'+(z?' z':'');
+  d.innerHTML=`<span>${label}</span><input type="number" step="0.01" placeholder="X"><input type="number" step="0.01" placeholder="Y">`+
+              (z?`<input type="number" step="0.01" placeholder="Z">`:'');
+  host.appendChild(d); return d;
+}
+function readPts(host,z){
+  const out=[];
+  for(const row of host.children){
+    const v=[...row.querySelectorAll('input')].map(i=>parseFloat(i.value));
+    if(v.slice(0,z?3:2).every(Number.isFinite)) out.push(z?[v[0],v[1],v[2]]:[v[0],v[1]]);
+  }
+  return out;
+}
+for(let i=0;i<5;i++) ptRow($('rimPts'),i+1,false);
+ptRow($('flankPts'),'R',false); ptRow($('flankPts'),'L',false);
+for(let i=0;i<3;i++) ptRow($('zPts'),i+1,true);
+$('rimAdd').onclick=()=>{ ptRow($('rimPts'),$('rimPts').children.length+1,false); run(); };
+['alCen','alAng','alZ'].forEach(id=>$(id).addEventListener('change',()=>{
+  $({alCen:'alCenBox',alAng:'alAngBox',alZ:'alZBox'}[id]).hidden=!$(id).checked;
+}));
+$('wMode').addEventListener('change',()=>{
+  const m=$('wMode').value;
+  $('rowRatio').hidden=m!=='ratio'; $('rowAngle').hidden=m!=='angle';
+  $('rowWIn').hidden=$('rowWOut').hidden=m!=='width';
+});
+
+/* ============================================================
+   parameters
+   ============================================================ */
+const nv=(id,d)=>{const v=parseFloat($(id).value); return Number.isFinite(v)?v:d;};
+function parseTeeth(str,N){
+  const out=new Set();
+  String(str).split(',').forEach(part=>{
+    const m=part.trim().match(/^(\d+)\s*(?:-\s*(\d+))?$/); if(!m) return;
+    const a=+m[1], b=m[2]?+m[2]:a;
+    for(let i=Math.min(a,b);i<=Math.max(a,b);i++) if(i>=1&&i<=N) out.add(i);
+  });
+  return [...out].sort((x,y)=>x-y);
+}
+function readParams(){
+  const p={
+    rIn:nv('rIn',45), rOut:nv('rOut',72), nTeeth:Math.max(1,Math.round(nv('nTeeth',12))),
+    rc:nv('rc',1.5), winH:nv('winH',18), arcEdges:$('edgeMode').value==='arc',
+    dBare:nv('dBare',.8), dOd:nv('dOd',.87), turns:Math.max(1,Math.round(nv('turns',60))),
+    layerK:nv('layerK',1), nR:nv('nR',1.2), clr:nv('clr',.15), stepDeg:nv('stepDeg',60),
+    cx:nv('cx',110), cy:nv('cy',110), ang0:nv('ang0',90),
+    z0:nv('z0',0), zSafe:nv('zSafe',45), parkX:nv('parkX',5), parkY:nv('parkY',210),
+    cornerPct:nv('cornerPct',60), travelF:nv('travelF',3000), accel:nv('accel',400),
+    jerkMode:$('jerkMode').value, jerkVal:nv('jerkVal',5), segDeg:nv('segDeg',8),
+    bedX:nv('bedX',220), bedY:nv('bedY',220), bedZ:nv('bedZ',250),
+    checkF:nv('checkF',600), align:$('optAlign').checked,
+    alignWhich:$('alignWhich').value, markZ:nv('markZ',0),
+    startSeq:$('startSeq').value, dry:$('optDry').checked, m117:$('optM117').checked,
+    pause:$('optPause').checked, limits:$('optLimits').checked, split:$('optSplit').checked,
+    beep:$('optBeep').checked, helper:$('optHelper').checked,
+    rateMode:$('rate').value, rateVal:nv('rateVal',20), rimR:nv('rimR',nv('rOut',72)),
+  };
+  // tooth angular half-widths
+  const pitch=TAU/p.nTeeth;
+  const m=$('wMode').value;
+  if(m==='ratio')      p.aIn=p.aOut=Math.min(0.49*pitch, nv('tRatio',.5)*pitch/2);
+  else if(m==='angle') p.aIn=p.aOut=Math.min(0.49*pitch, nv('tAngle',15)*D2R/2);
+  else{
+    p.aIn =Math.asin(Math.min(0.999, nv('wIn',11.75)/2/p.rIn));
+    p.aOut=Math.asin(Math.min(0.999, nv('wOut',18.79)/2/p.rOut));
+  }
+  p.L=p.rOut-p.rIn; p.rMid=(p.rIn+p.rOut)/2;
+  p.wIn=2*p.rIn*Math.sin(p.aIn); p.wOut=2*p.rOut*Math.sin(p.aOut);
+  p.pz=p.dOd; p.layerPitch=p.dOd*p.layerK;
+  p.teeth=parseTeeth($('teethSel').value,p.nTeeth); if(!p.teeth.length) p.teeth=[1];
+  p.tplAuto=Math.max(1,Math.floor(p.winH/p.pz)-1);
+  p.tpl=$('tplMode').value==='man'?Math.max(1,Math.round(nv('tplMan',p.tplAuto))):p.tplAuto;
+  p.layers=Math.ceil(p.turns/p.tpl);
+
+  // alignment solves
+  p.fit=null; p.plane=null; p.angFit=null;
+  if($('alCen').checked){
+    p.fit=fitCircle(readPts($('rimPts'),false));
+    if(p.fit){ p.cx=p.fit.cx; p.cy=p.fit.cy; }
+  }
+  if($('alAng').checked){
+    const fl=readPts($('flankPts'),false);
+    if(fl.length===2){
+      const mx=(fl[0][0]+fl[1][0])/2, my=(fl[0][1]+fl[1][1])/2;
+      const th=Math.atan2(my-p.cy,mx-p.cx)*R2D;
+      p.angFit={th,rA:Math.hypot(fl[0][0]-p.cx,fl[0][1]-p.cy),rB:Math.hypot(fl[1][0]-p.cx,fl[1][1]-p.cy)};
+      p.ang0=th;
+    }
+  }
+  if($('alZ').checked) p.plane=fitPlane(readPts($('zPts'),true));
+  $('cx').disabled=$('cy').disabled=!!p.fit;
+  $('ang0').disabled=!!p.angFit;
+  if(p.fit){ $('cx').value=p.cx.toFixed(3); $('cy').value=p.cy.toFixed(3); }
+  if(p.angFit) $('ang0').value=p.ang0.toFixed(2);
+  return p;
+}
+
+/* ============================================================
+   path
+   ============================================================ */
+function build(p){
+  const prof=makeProfile(p);
+  const loops=[];
+  for(let k=0;k<p.layers;k++)
+    loops.push(offsetLoop(prof, p.nR+p.dOd/2+k*p.layerPitch+p.clr));
+  const path=[];
+  let zc=p.z0+p.pz/2, dir=1, sc=0;
+  const push=(x,y,z,c,lay)=>{
+    const q=path[path.length-1];
+    if(q && Math.abs(q.x-x)<5e-4 && Math.abs(q.y-y)<5e-4 && Math.abs(q.z-z)<5e-4) return;
+    path.push({x,y,z,c,lay});
+  };
+  for(let k=0;k<p.layers;k++){
+    const Lp=loops[k], nT=(k===p.layers-1)?(p.turns-k*p.tpl):p.tpl;
+    for(let j=0;j<nT;j++){
+      const zA=zc, zB=zc+dir*p.pz, ss=spanS(Lp,sc,sc+1);
+      for(let i=(j===0&&k===0?0:1);i<ss.length;i++){
+        const s=ss[i], q=loopAt(Lp,s);
+        push(q[0],q[1],zA+(zB-zA)*(s-sc),q[2],k);
+      }
+      zc=zB; sc+=1;
+    }
+    if(k<p.layers-1){
+      const Ln=loops[k+1], frac=p.stepDeg/360, ss=spanS(Lp,sc,sc+frac);
+      for(let i=1;i<ss.length;i++){
+        const s=ss[i], a=(s-sc)/frac;
+        const q1=loopAt(Lp,s), q2=loopAt(Ln,s);
+        push(q1[0]+(q2[0]-q1[0])*a, q1[1]+(q2[1]-q1[1])*a, zc, q1[2]||q2[2], k+0.5);
+      }
+      sc+=frac; dir=-dir;
+    }
+  }
+  let len=0,maxZ=path.length?path[0].z:0;
+  for(let i=1;i<path.length;i++){
+    const a=path[i-1],b=path[i];
+    len+=Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z);
+    if(b.z>maxZ) maxZ=b.z;
+  }
+  return {prof,loops,path,pathLen:len,maxZ,outer:loops[loops.length-1]};
+}
+// tooth i sits at machine angle ang0 + (i-1)·360/N; the profile is drawn on +Y
+function placer(p,i){
+  const rot=((p.ang0+(i-1)*360/p.nTeeth)-90)*D2R, c=Math.cos(rot), s=Math.sin(rot);
+  return (x,y)=>[p.cx+x*c-y*s, p.cy+x*s+y*c];
+}
+// true minimum gap between one coil and its neighbour, over the whole path
+function clearance(p,geo){
+  const half=Math.PI/p.nTeeth;
+  let gap=Infinity, at=0;
+  for(const q of geo.outer.pts){
+    const r=Math.hypot(q[0],q[1]);
+    if(r<1e-6) continue;
+    const th=Math.abs(Math.atan2(q[0],q[1]));   // angle off the +Y centreline
+    const g=2*r*(half-th);
+    if(g<gap){ gap=g; at=r; }
+  }
+  return {gap,at};
+}
+
+/* ============================================================
+   G-code
+   ============================================================ */
+function feeds(p,geo){
+  const mlt=geo.pathLen/p.turns;
+  const F=Math.max(30,Math.round(p.rateMode==='rpm'?p.rateVal*mlt:p.rateVal));
+  return {F, Fc:Math.max(20,Math.round(F*p.cornerPct/100)), mlt};
+}
+const zOffset=(p,i)=>{
+  if(!p.plane) return 0;
+  const c=placer(p,i)(0,p.rMid);
+  return p.plane.a*c[0]+p.plane.b*c[1]+p.plane.c-p.z0;
+};
+
+function emitTooth(p,geo,i,fd,L){
+  const map=placer(p,i), tag=`T${String(i).padStart(2,'0')}`;
+  const dz=zOffset(p,i);
+  const ang=(p.ang0+(i-1)*360/p.nTeeth).toFixed(1);
+  L.push(``,`; ---------- tooth ${i} of ${p.nTeeth}  @ ${ang} deg${p.plane?`  Z${dz>=0?'+':''}${dz.toFixed(3)}`:''} ----------`);
+  if(p.m117) L.push(`M117 Tooth ${i}/${p.nTeeth}`);
+  const first=geo.path[0], fp=map(first.x,first.y);
+
+  if(p.dry){
+    const Lo=geo.outer, zTop=Math.max(geo.maxZ,p.z0+0.5)+dz;
+    const g0=(()=>{const q=loopAt(Lo,0);return map(q[0],q[1]);})();
+    L.push(`; clearance lap — widest loop at the finished height, slow`);
+    L.push(`G0 Z${f3(p.zSafe)} F${Math.round(p.travelF)}`);
+    L.push(`G0 X${f3(g0[0])} Y${f3(g0[1])}`);
+    L.push(`G0 Z${f3(zTop)} F${Math.round(Math.min(p.travelF,900))}`);
+    let first=true;
+    for(const s of spanS(Lo,0,1).slice(1)){
+      const q=loopAt(Lo,s), g=map(q[0],q[1]);
+      L.push(`G1 X${f3(g[0])} Y${f3(g[1])}`+(first?` F${Math.round(p.checkF)}`:''));
+      first=false;
+    }
+    L.push(`G0 Z${f3(p.zSafe)} F${Math.round(Math.min(p.travelF,900))}`);
+    if(p.pause) L.push(`M0 Clear? thread wire`);
+  }
+
+  L.push(`; approach — needle at the winding start`);
+  L.push(`G0 Z${f3(p.zSafe)} F${Math.round(p.travelF)}`);
+  L.push(`G0 X${f3(fp[0])} Y${f3(fp[1])}`);
+  L.push(`G0 Z${f3(first.z+dz)} F${Math.round(Math.min(p.travelF,900))}`);
+  if(p.pause) L.push(`M0 ${tag} anchor wire`);
+
+  let lastF=null,lastLay=-1;
+  for(let k=1;k<geo.path.length;k++){
+    const q=geo.path[k], g=map(q.x,q.y);
+    if(p.m117 && Number.isInteger(q.lay) && q.lay!==lastLay){
+      lastLay=q.lay; L.push(`M117 ${tag} layer ${q.lay+1}/${p.layers}`);
+    }
+    const F=q.c?fd.Fc:fd.F;
+    L.push(`G1 X${f3(g[0])} Y${f3(g[1])} Z${f3(q.z+dz)}`+(F!==lastF?` F${F}`:''));
+    lastF=F;
+  }
+  L.push(`G0 Z${f3(p.zSafe)} F${Math.round(Math.min(p.travelF,900))}`);
+  if(p.pause && i!==p.teeth[p.teeth.length-1]) L.push(`M0 ${tag} done - cut and tie off`);
+}
+
+function header(p,geo,fd,st,cl,which){
+  const now=new Date().toISOString().slice(0,16).replace('T',' ');
+  const st0=placer(p,which??p.teeth[0])(geo.path[0].x,geo.path[0].y);
+  const wm=$('wMode').value;
+  const start = p.startSeq==='home'
+    ? [`; SET-UP`,
+       `;   1. Remove the nozzle, fit the guide, thread the wire.`,
+       `;   2. Raise Z by hand until the needle clears the core.`,
+       `;   3. Run this file. It homes X and Y only — on an Ender 3`,
+       `;      that never moves Z, so it is safe with the core clamped.`,
+       `;   4. At the first pause, jog the tip down to the yoke face`,
+       `;      and send  G92 Z${f3(p.z0)}  before resuming.`]
+    : [`; SET-UP — nothing is homed.`,
+       `;   Jog the needle tip to  X${f3(st0[0])} Y${f3(st0[1])}  at the`,
+       `;   floor of the winding window, then send:`,
+       `;     G92 X${f3(st0[0])} Y${f3(st0[1])} Z${f3(p.z0)}`];
+  return [
+`;===============================================================`,
+`; AXIAL-FLUX NEEDLE WINDING — generated ${now}`,
+`;===============================================================`,
+`; STATOR  r1 ${p.rIn} -> r2 ${p.rOut} mm   ${p.nTeeth} teeth   ${p.arcEdges?'arc':'straight'} edges`,
+`;         tooth span ${(2*p.aOut*R2D).toFixed(2)} deg (${wm})   w1 ${p.wIn.toFixed(2)} / w2 ${p.wOut.toFixed(2)} mm`,
+`;         corner r ${p.rc} mm   tooth height ${p.winH} mm`,
+`; WIRE    ${p.dBare} mm bare / ${p.dOd} mm insulated`,
+`; WINDING ${p.turns} turns   ${p.layers} layers x ${p.tpl} (last ${p.turns-(p.layers-1)*p.tpl})`,
+`;         axial pitch ${p.pz.toFixed(3)}   layer pitch ${p.layerPitch.toFixed(3)} mm`,
+`;         coil build ${st.build.toFixed(2)} mm   coil height ${st.coilH.toFixed(2)} mm`,
+`; SLOT    area ${st.slotA.toFixed(0)} mm2 at r_mid   fill ${(st.slotFill*100).toFixed(1)} %`,
+`; NEEDLE  tip r ${p.nR} + standoff ${p.clr} mm`,
+`; GAP     tightest coil-to-coil ${cl.gap.toFixed(2)} mm at r ${cl.at.toFixed(1)} mm  (needle ${(2*p.nR).toFixed(1)} mm)`,
+`; PER COIL  MLT ${fd.mlt.toFixed(1)} mm   wire ${st.wireLen.toFixed(2)} m`,
+`;           R(20C) ${st.r20.toFixed(4)} ohm   R(100C) ${st.r100.toFixed(4)} ohm   Cu ${st.massG.toFixed(1)} g`,
+`; DATUM   centre X${f3(p.cx)} Y${f3(p.cy)}   tooth 1 at ${p.ang0.toFixed(2)} deg`,
+p.fit?`;         centre from ${p.fit.res.length} rim touches, max residual ${p.fit.maxRes.toFixed(3)} mm`:null,
+p.plane?`;         per-tooth Z from a 3-point plane`:null,
+`; TEETH   ${p.teeth.join(',')} of ${p.nTeeth}`,
+`; FEED    ${fd.F} mm/min straight, ${fd.Fc} corners  (~${(fd.F/fd.mlt).toFixed(1)} turns/min)`,
+`;---------------------------------------------------------------`,
+...start,
+`;===============================================================`,
+`G21`,
+`G90`,
+`M107`,
+...(p.startSeq==='home'?[`M0 Z clear of core?`,`G28 X Y`,`M0 Touch yoke, G92 Z0`]:[]),
+...(p.limits?[
+`M201 X${Math.round(p.accel)} Y${Math.round(p.accel)}`,
+`M204 P${Math.round(p.accel)} T${Math.round(p.accel)}`,
+...(p.jerkMode==='classic'?[`M205 X${p.jerkVal} Y${p.jerkVal}`]:p.jerkMode==='jd'?[`M205 J${p.jerkVal}`]:[]),
+]:[]),
+  ].filter(Boolean);
+}
+function footer(p){
+  const o=[``,`; ---------- finished ----------`,
+    `G0 Z${f3(p.zSafe)} F600`,
+    `G0 X${f3(p.parkX)} Y${f3(p.parkY)} F${Math.round(p.travelF)}`,`M400`];
+  if(p.beep) o.push(`M300 S880 P160`,`M300 S1320 P240`);
+  if(p.m117) o.push(`M117 Winding complete`);
+  return o;
+}
+
+/* alignment lap: layer-1 path at the yoke face, traced with a marker.
+   Standalone — you run it with a marker in the guide, not the needle. */
+function alignTeeth(p){
+  const T=p.teeth;
+  if(p.alignWhich==='all') return T.slice();
+  if(p.alignWhich==='1'||T.length<2) return [T[0]];
+  const a0=p.ang0+(T[0]-1)*360/p.nTeeth;
+  let best=T[0], bd=1e9;
+  for(const i of T){
+    if(i===T[0]) continue;
+    const d=Math.abs((((p.ang0+(i-1)*360/p.nTeeth-a0)%360)+360)%360-180);
+    if(d<bd){ bd=d; best=i; }
+  }
+  return best===T[0]?[T[0]]:[T[0],best];
+}
+function alignFile(p,geo){
+  const Lo=geo.loops[0], which=alignTeeth(p);
+  const L=[
+`; ALIGNMENT LAP — run this with a MARKER in the guide, not the needle.`,
+`; It traces the layer-1 path at the yoke face, ${Lo.t.toFixed(3)} mm out`,
+`; from the tooth face all the way round. Measure the gap between the`,
+`; mark and the lamination edge at the inner end, the outer end and`,
+`; both flanks: if it is even, the centre and the angle are right.`,
+`;   uneven inner vs outer  -> centre is off radially`,
+`;   uneven flank to flank  -> tooth 1 angle is off`,
+`;   mark fades on one side -> yoke face is not level (fit the Z plane)`,
+`; Teeth traced: ${which.join(', ')}`,
+`G21`,`G90`,`M107`,
+...(p.startSeq==='home'?[`M0 Z clear of core?`,`G28 X Y`,`M0 Touch yoke, G92 Z0`]:[]),
+];
+  for(const i of which){
+    const map=placer(p,i), z=p.z0+p.markZ+zOffset(p,i);
+    const g0=(()=>{const q=loopAt(Lo,0);return map(q[0],q[1]);})();
+    L.push(``,`; --- tooth ${i} ---`);
+    if(p.m117) L.push(`M117 Align lap T${i}`);
+    L.push(`G0 Z${f3(p.zSafe)} F${Math.round(p.travelF)}`);
+    L.push(`G0 X${f3(g0[0])} Y${f3(g0[1])}`);
+    L.push(`G0 Z${f3(z)} F${Math.round(Math.min(p.travelF,600))}`);
+    let first=true;
+    for(const s of spanS(Lo,0,1).slice(1)){
+      const q=loopAt(Lo,s), g=map(q[0],q[1]);
+      L.push(`G1 X${f3(g[0])} Y${f3(g[1])}`+(first?` F${Math.round(p.checkF)}`:''));
+      first=false;
+    }
+    L.push(`G0 Z${f3(p.zSafe)} F${Math.round(Math.min(p.travelF,600))}`);
+    if(p.pause) L.push(`M0 Measure tooth ${i} gap`);
+  }
+  L.push(`G0 X${f3(p.parkX)} Y${f3(p.parkY)} F${Math.round(p.travelF)}`,`M400`);
+  if(p.m117) L.push(`M117 Align lap done`);
+  return L.join('\n')+'\n';
+}
+
+/* helper file: walks the needle to each touch-off approach, X/Y only */
+function helperFile(p){
+  const L=[
+`; TOUCH-OFF HELPER`,
+`; Z is never commanded here — set it by hand first.`,
+`;   1. Raise Z clear, then lower the needle by hand to about`,
+`;      mid-height of the rim you are going to touch.`,
+`;   2. Run this file. At each pause the needle waits just outside`,
+`;      the target; jog X/Y in until the continuity tester beeps,`,
+`;      read X and Y off the LCD, then resume.`,
+`;   3. Type the readings into the alignment panel.`,
+`G21`,`G90`,`M0 Z at mid-rim?`,`G28 X Y`];
+  const back=(ux,uy)=>[`G91`,`G0 X${f3(ux*10)} Y${f3(uy*10)} F1200`,`G90`];
+  const nPts=Math.max(3,p.fit?p.fit.res.length:5);
+  L.push(``,`; --- rim points, radius ${p.rimR} mm ---`);
+  for(let i=0;i<nPts;i++){
+    const a=(p.ang0+12+i*360/nPts)*D2R, ux=Math.cos(a), uy=Math.sin(a);
+    L.push(`G0 X${f3(p.cx+ux*(p.rimR+8))} Y${f3(p.cy+uy*(p.rimR+8))} F${Math.round(p.travelF)}`);
+    if(p.m117) L.push(`M117 Rim ${i+1}/${nPts} - jog in`);
+    L.push(`M0 Rim ${i+1} - jog, read XY`, ...back(ux,uy));
+  }
+  L.push(``,`; --- tooth 1 flanks, near the outer radius ---`);
+  const rf=p.rOut-2, map=placer(p,1);
+  for(const [sgn,name] of [[1,'R'],[-1,'L']]){
+    const local=[sgn*(rf*Math.sin(p.aOut)+6), rf*Math.cos(p.aOut)*0+rf];
+    const g=map(local[0],local[1]);
+    const a=Math.atan2(g[1]-p.cy,g[0]-p.cx);
+    L.push(`G0 X${f3(g[0])} Y${f3(g[1])} F${Math.round(p.travelF)}`);
+    if(p.m117) L.push(`M117 Tooth1 ${name} flank`);
+    L.push(`M0 Flank ${name} - jog, read XY`, ...back(Math.cos(a),Math.sin(a)));
+  }
+  L.push(``,`; --- yoke Z touches (lower Z by hand, read Z) ---`);
+  for(let k=0;k<3;k++){
+    const i=1+Math.round(k*p.nTeeth/3);
+    const m2=placer(p,i);
+    const g=m2(p.rMid*Math.sin(p.aOut)+p.nR+1, p.rMid);
+    L.push(`G0 X${f3(g[0])} Y${f3(g[1])} F${Math.round(p.travelF)}`);
+    L.push(`M0 Yoke at tooth ${i} - read Z`);
+  }
+  L.push(`G0 X${f3(p.parkX)} Y${f3(p.parkY)} F${Math.round(p.travelF)}`,`M117 Touch-off done`);
+  return L.join('\n')+'\n';
+}
+
+/* ============================================================
+   stats & checks
+   ============================================================ */
+const RHO=1.724e-8, ALPHA=0.00393, DENS=8960;
+function statsOf(p,geo,fd){
+  const areaM=Math.PI/4*Math.pow(p.dBare/1000,2), lenM=geo.pathLen/1000;
+  const r20=RHO*lenM/areaM, build=p.layers*p.layerPitch;
+  const coilH=Math.min(p.turns,p.tpl)*p.pz+p.pz;
+  const cuSide=p.turns*Math.PI/4*p.dBare*p.dBare, bundle=build*coilH;
+  // conventional slot figures, taken at the mean radius
+  const aMid=(p.aIn+p.aOut)/2;
+  const slotW=p.rMid*Math.max(0,TAU/p.nTeeth-2*aMid);
+  const slotA=slotW*p.winH;
+  return {wireLen:lenM,r20,r100:r20*(1+ALPHA*80),massG:DENS*lenM*areaM*1000,
+          build,coilH,fill:bundle>0?cuSide/bundle:0,
+          slotW,slotA,slotFill:slotA>0?2*cuSide/slotA:0,
+          timeS:(geo.pathLen/fd.F)*60};
+}
+function checks(p,geo,fd,cl,bbox){
+  const o=[], add=(k,t,txt)=>o.push({k,t,txt});
+  if(p.rIn>=p.rOut) add('bad','geometry','Inner radius must be smaller than the outer radius.');
+  if(2*p.aOut>=TAU/p.nTeeth) add('bad','geometry',`A ${(2*p.aOut*R2D).toFixed(1)}° tooth does not fit a ${(360/p.nTeeth).toFixed(1)}° slot pitch.`);
+  if(p.dOd<p.dBare) add('bad','wire','Insulated Ø is smaller than the bare copper Ø.');
+
+  if(bbox.minX<0||bbox.minY<0||bbox.maxX>p.bedX||bbox.maxY>p.bedY)
+    add('bad','bed',`Path runs off the bed — X ${bbox.minX.toFixed(1)}…${bbox.maxX.toFixed(1)}, Y ${bbox.minY.toFixed(1)}…${bbox.maxY.toFixed(1)} against ${p.bedX}×${p.bedY} mm.`);
+  if(Math.max(geo.maxZ,p.zSafe)>p.bedZ)
+    add('bad','z',`Top of travel ${Math.max(geo.maxZ,p.zSafe).toFixed(1)} mm exceeds the ${p.bedZ} mm Z limit.`);
+
+  const coilH=Math.min(p.turns,p.tpl)*p.pz+p.pz;
+  if(coilH>p.winH+1e-6) add('warn','height',`Coil stands ${coilH.toFixed(1)} mm tall against a ${p.winH} mm tooth — it will sit proud of the tooth top.`);
+
+  if(p.nTeeth>1){
+    const needle=2*p.nR;
+    if(cl.gap<=0)
+      add('bad','collision',`Adjacent coils overlap by ${(-cl.gap).toFixed(2)} mm at r ${cl.at.toFixed(1)} mm. Drop a layer, use finer wire, or narrow the tooth.`);
+    else if(cl.gap<needle)
+      add('bad','needle',`Only ${cl.gap.toFixed(2)} mm of slot left at r ${cl.at.toFixed(1)} mm — the needle is ${needle.toFixed(1)} mm across and cannot pass on the last layer.`);
+    else if(cl.gap<needle+1)
+      add('warn','needle',`${cl.gap.toFixed(2)} mm of slot at r ${cl.at.toFixed(1)} mm against a ${needle.toFixed(1)} mm needle. Workable, but there is nothing spare.`);
+    else
+      add('ok','clearance',`${cl.gap.toFixed(2)} mm of slot remains at r ${cl.at.toFixed(1)} mm — ${(cl.gap-needle).toFixed(2)} mm clear of the needle.`);
+  }
+  if(p.fit && p.fit.maxRes>0.15)
+    add('warn','datum',`Rim fit residual is ${p.fit.maxRes.toFixed(3)} mm — one touch is probably off, or the rim is not round.`);
+  if(p.fit && Math.abs(p.fit.R-p.rimR)>0.5)
+    add('warn','datum',`Fitted rim radius ${p.fit.R.toFixed(2)} mm against ${p.rimR} mm expected. Backlash inflates this, so check the centre against a second set of touches.`);
+  if(p.angFit && Math.abs(p.angFit.rA-p.angFit.rB)>2)
+    add('warn','datum',`Flank touches are at ${p.angFit.rA.toFixed(1)} and ${p.angFit.rB.toFixed(1)} mm radius. Match them, or the midpoint drifts off the tooth centreline.`);
+  if(p.plane){
+    const sp=Math.hypot(p.plane.a,p.plane.b)*2*p.rOut;
+    if(sp>0.6) add('warn','tilt',`Yoke face is out by ${sp.toFixed(2)} mm across the stator — more than half a wire pitch. Level the bed before winding.`);
+    else add('ok','tilt',`Yoke tilt ${sp.toFixed(2)} mm across the stator, corrected per tooth.`);
+  }
+  if(fd.F>6000) add('warn','feed',`${fd.F} mm/min is past what an Ender 3 holds through corners.`);
+  if(p.rc<p.dOd) add('warn','corner',`Corner radius ${p.rc} mm is under one wire diameter; the wire will bridge rather than follow the lamination.`);
+  return o;
+}
+
+/* ============================================================
+   main
+   ============================================================ */
+let STATE=null;
+function fmtT(s){ return s<90?Math.round(s)+' s':s<5400?(s/60).toFixed(s<600?1:0)+' min':(s/3600).toFixed(1)+' h'; }
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function run(){
+  const p=readParams();
+  $('tplRow').hidden=$('tplMode').value!=='man';
+  if($('tplMode').value!=='man') $('tplMan').value=p.tplAuto;
+
+  // alignment feedback
+  $('rimOut').innerHTML = !$('alCen').checked ? '' : p.fit
+    ? `centre <b>X ${p.fit.cx.toFixed(3)}</b> <b>Y ${p.fit.cy.toFixed(3)}</b><br>radius ${p.fit.R.toFixed(3)} mm · ${p.fit.res.length} pts<br>`+
+      `residuals ${p.fit.res.map(r=>r.toFixed(3)).join(' ')}<br>`+
+      `<span class="${p.fit.maxRes>0.15?'warnt':''}">max |resid| ${p.fit.maxRes.toFixed(3)} mm</span>`
+    : 'Three points minimum; five or six gives you residuals worth reading.';
+  $('flankOut').innerHTML = !$('alAng').checked ? '' : p.angFit
+    ? `tooth 1 at <b>${p.angFit.th.toFixed(2)}°</b><br>touch radii ${p.angFit.rA.toFixed(2)} / ${p.angFit.rB.toFixed(2)} mm`
+    : 'Touch both flanks of tooth 1 at roughly the same radius, near the outer edge.';
+  $('zOut').innerHTML = !$('alZ').checked ? '' : p.plane
+    ? `tilt <b>${(Math.hypot(p.plane.a,p.plane.b)*2*p.rOut).toFixed(3)} mm</b> across the stator<br>`+
+      `steepest fall toward ${(Math.atan2(-p.plane.b,-p.plane.a)*R2D).toFixed(0)}°`
+    : 'Zero Z on the first yoke touch, then read Z at the other two.';
+
+  let geo,fd,st,cl;
+  try{ geo=build(p); fd=feeds(p,geo); st=statsOf(p,geo,fd); cl=clearance(p,geo); }
+  catch(err){
+    $('notes').innerHTML=`<div class="note n-bad"><span class="k">error</span><span class="t">${esc(err.message)}</span></div>`;
+    return;
+  }
+
+  $('geoOut').innerHTML=
+    `span <b>${(2*p.aOut*R2D).toFixed(2)}°</b> of ${(360/p.nTeeth).toFixed(2)}° pitch<br>`+
+    `w₁ ${p.wIn.toFixed(2)} · w₂ ${p.wOut.toFixed(2)} · L ${p.L.toFixed(2)} mm<br>`+
+    `slot opening ${(TAU*p.rIn/p.nTeeth-p.wIn).toFixed(2)} mm at r₁, ${(TAU*p.rOut/p.nTeeth-p.wOut).toFixed(2)} mm at r₂`+
+    `<br>slot ${st.slotW.toFixed(2)} mm wide × ${p.winH} mm = <b>${st.slotA.toFixed(0)} mm²</b> at r<sub>mid</sub>`;
+
+  const bbox={minX:1e9,maxX:-1e9,minY:1e9,maxY:-1e9};
+  for(const i of p.teeth){
+    const map=placer(p,i);
+    for(const q of geo.path){
+      const g=map(q.x,q.y);
+      if(g[0]<bbox.minX)bbox.minX=g[0]; if(g[0]>bbox.maxX)bbox.maxX=g[0];
+      if(g[1]<bbox.minY)bbox.minY=g[1]; if(g[1]>bbox.maxY)bbox.maxY=g[1];
+    }
+  }
+
+  const files=[];
+  if(p.helper) files.push({name:'setup_touchoff.gcode', text:helperFile(p)});
+  if(p.align)  files.push({name:'align_lap.gcode', text:alignFile(p,geo)});
+  if(p.split){
+    for(const i of p.teeth){
+      const L=header(p,geo,fd,st,cl,i); emitTooth(p,geo,i,fd,L); L.push(...footer(p));
+      files.push({name:`coil_T${String(i).padStart(2,'0')}.gcode`, text:L.join('\n')+'\n'});
+    }
+  }else{
+    const L=header(p,geo,fd,st,cl);
+    for(const i of p.teeth) emitTooth(p,geo,i,fd,L);
+    L.push(...footer(p));
+    files.push({name:`coil_${p.turns}t_${p.dOd}mm.gcode`, text:L.join('\n')+'\n'});
+  }
+  STATE={p,geo,fd,st,cl,files,bbox};
+
+  const per=st.timeS, all=per*p.teeth.length;
+  const tight=cl.gap<2*p.nR;
+  $('readouts').innerHTML=[
+    ['Turns',`${p.turns}`,'',0],
+    ['Layers',`${p.layers}`,`× ${p.tpl}`,0],
+    ['MLT',fd.mlt.toFixed(1),'mm',0],
+    ['Wire / coil',st.wireLen.toFixed(2),'m',0],
+    ['R @ 20 °C',st.r20.toFixed(3),'Ω',0],
+    ['R @ 100 °C',st.r100.toFixed(3),'Ω',0],
+    ['Copper',st.massG.toFixed(1),'g',0],
+    ['Coil build',st.build.toFixed(2),'mm',0],
+    ['Coil height',st.coilH.toFixed(2),'mm',0],
+    ['Slot gap',cl.gap.toFixed(2),'mm',tight?1:0],
+    ['Slot area',st.slotA.toFixed(0),'mm²',0],
+    ['Slot fill',(st.slotFill*100).toFixed(1),'%',0],
+    ['Bundle fill',(st.fill*100).toFixed(0),'%',0],
+    ['Time / coil',fmtT(per),'',0],
+    [`Time · ${p.teeth.length}`,fmtT(all),'',0],
+  ].map(([k,v,u,hot])=>`<div class="ro${hot?' hot':''}"><dt>${k}</dt><dd>${v}<s>${u}</s></dd></div>`).join('');
+
+  const ns=checks(p,geo,fd,cl,bbox);
+  $('notes').innerHTML=ns.map(n=>`<div class="note n-${n.k}"><span class="k">${n.t}</span><span class="t">${esc(n.txt)}</span></div>`).join('');
+
+  const sel=$('fileSel');
+  sel.hidden=files.length<2;
+  if(!sel.hidden){
+    const keep=sel.value;
+    sel.innerHTML=files.map((f,i)=>`<option value="${i}">${f.name}</option>`).join('');
+    sel.value=(keep&&keep<files.length)?keep:0;
+  }
+  showFile(+(sel.hidden?0:sel.value||0));
+
+  $('machineTag').innerHTML=
+    `<b>bed</b> ${p.bedX}×${p.bedY}×${p.bedZ} mm<br>`+
+    `<b>path</b> X ${bbox.minX.toFixed(1)}–${bbox.maxX.toFixed(1)} · Y ${bbox.minY.toFixed(1)}–${bbox.maxY.toFixed(1)}<br>`+
+    `<b>Z</b> ${p.z0.toFixed(1)}–${geo.maxZ.toFixed(2)} mm`;
+
+  draw();
+}
+function showFile(idx){
+  const {files}=STATE, f=files[Math.min(idx,files.length-1)];
+  const total=files.reduce((a,x)=>a+x.text.length,0);
+  const lines=files.reduce((a,x)=>a+x.text.split('\n').length,0);
+  $('gmeta').textContent=`${files.length} file${files.length>1?'s':''} · ${lines.toLocaleString()} lines · ${(total/1024).toFixed(0)} kB`;
+  const L=f.text.split('\n');
+  const shown=L.length<=64?L:[...L.slice(0,46),'',`;   … ${(L.length-64).toLocaleString()} more lines …`,'',...L.slice(-18)];
+  $('gpre').innerHTML=shown.map(l=>l.startsWith(';')?`<i>${esc(l)}</i>`:esc(l).replace(/^(G0|G1|G2[89]|M\d+)/,'<b>$1</b>')).join('\n');
+}
+$('fileSel').addEventListener('change',e=>showFile(+e.target.value));
+
+/* ============================================================
+   viewport
+   ============================================================ */
+const cv=$('cv'), ctx=cv.getContext('2d');
+let VIEW='3d';
+const cam={az:-0.62,el:0.95,zoom:1,panx:0,pany:0};
+let dpr=1;
+function fit(){
+  const r=cv.getBoundingClientRect();
+  dpr=Math.min(2,window.devicePixelRatio||1);
+  cv.width=Math.max(1,Math.round(r.width*dpr));
+  cv.height=Math.max(1,Math.round(r.height*dpr));
+  draw();
+}
+new ResizeObserver(fit).observe(cv);
+function proj(x,y,z,o){
+  const ca=Math.cos(cam.az),sa=Math.sin(cam.az);
+  const X=x*ca+y*sa, Y=-x*sa+y*ca;
+  const ce=Math.cos(cam.el),se=Math.sin(cam.el);
+  return [o.cx+X*o.s, o.cy-(Y*ce-z*se)*o.s];
+}
+function ramp(f){
+  const a=[176,85,42], b=[233,178,120];
+  return `rgb(${Math.round(a[0]+(b[0]-a[0])*f)},${Math.round(a[1]+(b[1]-a[1])*f)},${Math.round(a[2]+(b[2]-a[2])*f)})`;
+}
+function label(x,y,t,col,align){
+  ctx.fillStyle=col||'#8d9aa4';
+  ctx.font='500 11px "IBM Plex Mono",ui-monospace,monospace';
+  ctx.textAlign=align||'left'; ctx.fillText(t,x,y); ctx.textAlign='left';
+}
+function legend(w,h,items){
+  let x=14; const y=h-14;
+  ctx.font='500 11px "IBM Plex Mono",ui-monospace,monospace';
+  for(const [t,c] of items){
+    ctx.strokeStyle=c; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(x,y-4); ctx.lineTo(x+16,y-4); ctx.stroke();
+    ctx.fillStyle='#8d9aa4'; ctx.fillText(t,x+22,y);
+    x+=28+ctx.measureText(t).width;
+  }
+}
+function draw(){
+  if(!STATE) return;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--view').trim()||'#13161a';
+  ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.save(); ctx.scale(dpr,dpr);
+  const w=cv.width/dpr, h=cv.height/dpr;
+  if(VIEW==='3d') draw3d(w,h); else if(VIEW==='top') drawSlot(w,h); else drawBed(w,h);
+  ctx.restore();
+}
+
+function draw3d(w,h){
+  const {p,geo}=STATE, R=p.rMid;
+  const span=Math.max(p.wOut,p.L)+2*geo.outer.t+6;
+  const o={cx:w/2+cam.panx, cy:h/2+30+cam.pany, s:Math.min(w,h)/(span*1.5)*cam.zoom};
+  const top=p.z0+p.winH;
+  const T=(x,y)=>[x,y-R];                    // recentre the tooth for display
+
+  ctx.strokeStyle='#232b31'; ctx.lineWidth=1;
+  const gx=Math.ceil(span/2/5)*5;
+  ctx.beginPath();
+  for(let v=-gx;v<=gx;v+=5){
+    let a=proj(v,-gx,p.z0,o), b=proj(v,gx,p.z0,o); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]);
+    a=proj(-gx,v,p.z0,o); b=proj(gx,v,p.z0,o); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]);
+  }
+  ctx.stroke();
+
+  // lamination
+  const P=geo.prof;
+  ctx.fillStyle='rgba(90,110,125,.20)';
+  ctx.beginPath();
+  P.forEach((q,i)=>{const [x,y]=T(q.x,q.y); const g=proj(x,y,top,o); i?ctx.lineTo(g[0],g[1]):ctx.moveTo(g[0],g[1]);});
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='#5c6e7c'; ctx.lineWidth=1.3;
+  for(const z of [p.z0,top]){
+    ctx.beginPath();
+    P.forEach((q,i)=>{const [x,y]=T(q.x,q.y); const g=proj(x,y,z,o); i?ctx.lineTo(g[0],g[1]):ctx.moveTo(g[0],g[1]);});
+    ctx.closePath(); ctx.stroke();
+  }
+  ctx.beginPath();
+  for(let i=0;i<P.length;i+=Math.ceil(P.length/24)){
+    const [x,y]=T(P[i].x,P[i].y);
+    const a=proj(x,y,p.z0,o), b=proj(x,y,top,o);
+    ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]);
+  }
+  ctx.stroke();
+
+  // coil
+  const path=geo.path, step=path.length>26000?Math.ceil(path.length/26000):1;
+  ctx.lineWidth=Math.max(.7,Math.min(2.2,o.s*p.dOd*.75));
+  ctx.lineJoin='round'; ctx.lineCap='round';
+  let lay=-99;
+  ctx.beginPath();
+  for(let i=0;i<path.length;i+=step){
+    const q=path[i], l=Math.floor(q.lay), [x,y]=T(q.x,q.y), g=proj(x,y,q.z,o);
+    if(l!==lay){ ctx.stroke(); ctx.strokeStyle=ramp(p.layers>1?l/(p.layers-1):0); ctx.beginPath(); ctx.moveTo(g[0],g[1]); lay=l; continue; }
+    ctx.lineTo(g[0],g[1]);
+  }
+  ctx.stroke();
+
+  const s0=(()=>{const q=path[0],[x,y]=T(q.x,q.y);return proj(x,y,q.z,o);})();
+  ctx.fillStyle='#e9e2d8'; ctx.beginPath(); ctx.arc(s0[0],s0[1],3,0,TAU); ctx.fill();
+  label(s0[0]+7,s0[1]+3,'start','#cfd8de');
+  label(14,22,`Tooth 1 · r ${p.rIn}–${p.rOut} mm · ${p.arcEdges?'arc':'straight'} edges`,'#8d9aa4');
+  legend(w,h,[['layer 1',ramp(0)],[`layer ${p.layers}`,ramp(1)],['lamination','#5c6e7c']]);
+}
+
+function drawSlot(w,h){
+  const {p,geo,cl}=STATE, R=p.rMid;
+  const pitch=TAU/p.nTeeth;
+  const t=geo.outer.t;
+  const spanX=2*(p.wOut/2+t)+2*(TAU*p.rOut/p.nTeeth-p.wOut)+20;
+  const spanY=p.L+2*t+34;
+  const s=Math.min(w/spanX,h/spanY)*.88;
+  const X=x=>w/2+x*s, Y=y=>h/2-(y-R)*s;
+  const rot=(q,a)=>[q[0]*Math.cos(a)-q[1]*Math.sin(a), q[0]*Math.sin(a)+q[1]*Math.cos(a)];
+  const poly=(pts,a)=>{ctx.beginPath();pts.forEach((q,i)=>{const r=rot(q,a);i?ctx.lineTo(X(r[0]),Y(r[1])):ctx.moveTo(X(r[0]),Y(r[1]));});ctx.closePath();};
+  const profPts=geo.prof.map(q=>[q.x,q.y]);
+
+  for(const a of [-pitch,0,pitch]){
+    const me=a===0;
+    poly(profPts,a);
+    ctx.fillStyle=me?'rgba(90,110,125,.24)':'rgba(70,84,94,.13)';
+    ctx.strokeStyle=me?'#6c7f8c':'#3f4a52'; ctx.lineWidth=me?1.6:1;
+    ctx.fill(); ctx.stroke();
+    if(me){
+      geo.loops.forEach((Lp,k)=>{
+        poly(Lp.pts,0);
+        ctx.strokeStyle=ramp(p.layers>1?k/(p.layers-1):0);
+        ctx.lineWidth=Math.max(1,Math.min(4,s*p.dOd)); ctx.stroke();
+      });
+    }else{
+      poly(geo.outer.pts,a);
+      ctx.strokeStyle='rgba(176,106,52,.42)'; ctx.lineWidth=1.2; ctx.stroke();
+    }
+  }
+
+  // tightest gap, drawn where it actually occurs
+  let best=null;
+  for(const q of geo.outer.pts){
+    const r=Math.hypot(q[0],q[1]); if(r<1e-6) continue;
+    const th=Math.abs(Math.atan2(q[0],q[1]));
+    const g=2*r*(pitch/2-th);
+    if(!best||g<best.g) best={g,q,r};
+  }
+  // r1 / r2 as true arcs about the machine centre, labelled clear on the left
+  const aMax=1.45*pitch;
+  ctx.lineWidth=1; ctx.setLineDash([2,4]); ctx.strokeStyle='#49545e';
+  for(const [r,txt] of [[p.rIn,`r₁ ${p.rIn}`],[p.rOut,`r₂ ${p.rOut}`]]){
+    ctx.beginPath();
+    for(let k=0;k<=48;k++){
+      const q=rot([0,r],-aMax+2*aMax*k/48);
+      k?ctx.lineTo(X(q[0]),Y(q[1])):ctx.moveTo(X(q[0]),Y(q[1]));
+    }
+    ctx.stroke();
+    const e=rot([0,r],aMax);
+    label(X(e[0])+5,Y(e[1])-5,txt,'#7c8892');
+  }
+  ctx.setLineDash([]);
+
+  if(best){
+    const m=rot([-best.q[0],best.q[1]],-pitch);   // mirrored point on the neighbour
+    const col=cl.gap<2*p.nR?'#d9705f':'#6fb98a';
+    const ax=X(best.q[0]), ay=Y(best.q[1]), bx2=X(m[0]), by2=Y(m[1]);
+    ctx.strokeStyle=col; ctx.lineWidth=1.6;
+    ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx2,by2); ctx.stroke();
+    const dx=bx2-ax, dy=by2-ay, ln=Math.hypot(dx,dy)||1;
+    ctx.beginPath(); ctx.moveTo((ax+bx2)/2,(ay+by2)/2);
+    ctx.lineTo((ax+bx2)/2-dy/ln*22,(ay+by2)/2+dx/ln*22); ctx.stroke();
+    label((ax+bx2)/2-dy/ln*26,(ay+by2)/2+dx/ln*26+4,`${cl.gap.toFixed(2)} mm`,col,'center');
+  }
+
+  // radial build, with a leader off the free flank
+  const b0=X(-p.wOut/2), b1=X(-p.wOut/2-t);
+  ctx.strokeStyle='#b1552a'; ctx.setLineDash([2,2]); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(b0,Y(R)); ctx.lineTo(b1-14,Y(R)); ctx.stroke(); ctx.setLineDash([]);
+  label(b1-18,Y(R)+4,`build ${STATE.st.build.toFixed(2)}`,'#d7834f','right');
+  label(14,22,`Slot section · ${(2*p.aOut*R2D).toFixed(1)}° tooth on a ${(360/p.nTeeth).toFixed(1)}° pitch`,'#8d9aa4');
+  legend(w,h,[['tooth','#6c7f8c'],['layer 1',ramp(0)],[`layer ${p.layers}`,ramp(1)],['neighbour coil','rgba(176,106,52,.42)']]);
+}
+
+function drawBed(w,h){
+  const {p,geo}=STATE;
+  const m=26, s=Math.min((w-2*m)/p.bedX,(h-2*m)/p.bedY);
+  const ox=(w-p.bedX*s)/2, oy=h-(h-p.bedY*s)/2;
+  const X=x=>ox+x*s, Y=y=>oy-y*s;
+  ctx.strokeStyle='#2c343a'; ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let v=0;v<=p.bedX;v+=20){ctx.moveTo(X(v),Y(0));ctx.lineTo(X(v),Y(p.bedY));}
+  for(let v=0;v<=p.bedY;v+=20){ctx.moveTo(X(0),Y(v));ctx.lineTo(X(p.bedX),Y(v));}
+  ctx.stroke();
+  ctx.strokeStyle='#54616b'; ctx.lineWidth=1.6; ctx.strokeRect(X(0),Y(p.bedY),p.bedX*s,p.bedY*s);
+
+  ctx.strokeStyle='#3d4a54'; ctx.setLineDash([4,4]);
+  for(const r of [p.rIn,p.rOut,p.rimR]){ ctx.beginPath(); ctx.arc(X(p.cx),Y(p.cy),r*s,0,TAU); ctx.stroke(); }
+  ctx.setLineDash([]);
+
+  const wound=new Set(p.teeth);
+  for(let i=1;i<=p.nTeeth;i++){
+    const map=placer(p,i), on=wound.has(i);
+    ctx.beginPath();
+    geo.prof.forEach((q,k)=>{const g=map(q.x,q.y); k?ctx.lineTo(X(g[0]),Y(g[1])):ctx.moveTo(X(g[0]),Y(g[1]));});
+    ctx.closePath();
+    ctx.fillStyle=on?'rgba(90,110,125,.30)':'rgba(70,84,94,.14)';
+    ctx.strokeStyle=on?'#6c7f8c':'#3b464e'; ctx.lineWidth=1; ctx.fill(); ctx.stroke();
+    if(!on) continue;
+    ctx.beginPath();
+    geo.outer.pts.forEach((q,k)=>{const g=map(q[0],q[1]); k?ctx.lineTo(X(g[0]),Y(g[1])):ctx.moveTo(X(g[0]),Y(g[1]));});
+    ctx.closePath(); ctx.strokeStyle=ramp(1); ctx.lineWidth=1.3; ctx.stroke();
+    const c=map(0,p.rMid);
+    label(X(c[0]),Y(c[1])+3,String(i),'#c9d2d8','center');
+  }
+  ctx.fillStyle='#c9d2d8'; ctx.beginPath(); ctx.arc(X(p.cx),Y(p.cy),2.5,0,TAU); ctx.fill();
+  label(X(p.cx)+6,Y(p.cy)-5,`${p.cx.toFixed(2)}, ${p.cy.toFixed(2)}`,'#8d9aa4');
+  ctx.fillStyle='#9aa6ae'; ctx.beginPath(); ctx.arc(X(p.parkX),Y(p.parkY),3,0,TAU); ctx.fill();
+  label(X(p.parkX)+7,Y(p.parkY)+3,'park','#8d9aa4');
+  label(14,22,`Bed ${p.bedX} × ${p.bedY} mm · ${p.teeth.length} of ${p.nTeeth} teeth selected`,'#8d9aa4');
+}
+
+let drag=null;
+cv.addEventListener('pointerdown',e=>{
+  if(VIEW!=='3d') return;
+  drag={x:e.clientX,y:e.clientY,az:cam.az,el:cam.el,pan:e.shiftKey,px:cam.panx,py:cam.pany};
+  cv.setPointerCapture(e.pointerId);
+});
+cv.addEventListener('pointermove',e=>{
+  if(!drag) return;
+  const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+  if(drag.pan){ cam.panx=drag.px+dx; cam.pany=drag.py+dy; }
+  else{ cam.az=drag.az+dx*.008; cam.el=Math.max(-.2,Math.min(1.45,drag.el+dy*.006)); }
+  draw();
+});
+addEventListener('pointerup',()=>{drag=null;});
+cv.addEventListener('wheel',e=>{
+  e.preventDefault();
+  cam.zoom=Math.max(.25,Math.min(9,cam.zoom*(e.deltaY>0?.9:1.1)));
+  draw();
+},{passive:false});
+function setView(v){
+  VIEW=v;
+  $('tab3d').setAttribute('aria-selected',String(v==='3d'));
+  $('tabTop').setAttribute('aria-selected',String(v==='top'));
+  $('tabBed').setAttribute('aria-selected',String(v==='bed'));
+  $('viewHint').textContent=v==='3d'?'drag to orbit · shift-drag to pan · wheel to zoom':'';
+  draw();
+}
+$('tab3d').onclick=()=>setView('3d');
+$('tabTop').onclick=()=>setView('top');
+$('tabBed').onclick=()=>setView('bed');
+
+/* ============================================================
+   store-only zip
+   ============================================================ */
+const CRC=(()=>{const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}
+  return b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=t[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;};
+})();
+function zip(files){
+  const enc=new TextEncoder(), parts=[], central=[]; let off=0;
+  const d=new Date(), dt=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1),
+        dd=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
+  for(const f of files){
+    const name=enc.encode(f.name), data=enc.encode(f.text), crc=CRC(data);
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true);
+    lh.setUint16(10,dt,true); lh.setUint16(12,dd,true);
+    lh.setUint32(14,crc,true); lh.setUint32(18,data.length,true); lh.setUint32(22,data.length,true);
+    lh.setUint16(26,name.length,true);
+    parts.push(new Uint8Array(lh.buffer),name,data);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true);
+    ch.setUint16(12,dt,true); ch.setUint16(14,dd,true);
+    ch.setUint32(16,crc,true); ch.setUint32(20,data.length,true); ch.setUint32(24,data.length,true);
+    ch.setUint16(28,name.length,true); ch.setUint32(42,off,true);
+    central.push(new Uint8Array(ch.buffer),name);
+    off+=30+name.length+data.length;
+  }
+  const cdSize=central.reduce((a,b)=>a+b.length,0);
+  const eo=new DataView(new ArrayBuffer(22));
+  eo.setUint32(0,0x06054b50,true);
+  eo.setUint16(8,files.length,true); eo.setUint16(10,files.length,true);
+  eo.setUint32(12,cdSize,true); eo.setUint32(16,off,true);
+  return new Blob([...parts,...central,new Uint8Array(eo.buffer)],{type:'application/zip'});
+}
+
+/* ============================================================
+   save / copy
+   ============================================================ */
+let DL=null;
+(async()=>{ try{ DL=await window.claude?.use?.('downloads'); }catch(e){ DL=null; } })();
+function flash(btn,txt){
+  const old=btn.textContent; btn.textContent=txt; btn.disabled=true;
+  setTimeout(()=>{btn.textContent=old;btn.disabled=false;},1400);
+}
+$('btnCopy').onclick=async()=>{
+  if(!STATE) return;
+  const i=$('fileSel').hidden?0:+$('fileSel').value;
+  try{ await navigator.clipboard.writeText(STATE.files[i].text); flash($('btnCopy'),'Copied'); }
+  catch(e){ flash($('btnCopy'),'Blocked'); }
+};
+$('btnSave').onclick=async()=>{
+  if(!STATE) return;
+  const {files,p}=STATE, many=files.length>1;
+  const stamp=`${p.turns}t_${p.dOd}mm`;
+  if(DL){
+    try{ await DL.save({filename:`coil_winding_${stamp}.zip`, data:zip(files)}); flash($('btnSave'),'Saved'); }
+    catch(err){ flash($('btnSave'), err&&err.code==='declined'?'Cancelled':'Failed'); }
+    return;
+  }
+  const blob=many?zip(files):new Blob([files[0].text],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=many?`coil_winding_${stamp}.zip`:files[0].name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  flash($('btnSave'),'Saved');
+};
+
+let pend=null;
+$('form').addEventListener('input',()=>{ clearTimeout(pend); pend=setTimeout(run,110); });
+$('form').addEventListener('change',run);
+$('form').addEventListener('submit',e=>e.preventDefault());
+matchMedia('(prefers-color-scheme:dark)').addEventListener?.('change',draw);
+fit(); run();
+</script>
+
+</body></html>
