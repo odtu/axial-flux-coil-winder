@@ -195,7 +195,7 @@ pre.gcode i{color:var(--ink3);font-style:normal}
     <div class="row"><label for="dOd">Insulated Ø</label><input type="number" id="dOd" value="0.87" step="0.01" min="0.05"></div>
     <div class="row"><label for="turns">Turns</label><input type="number" id="turns" value="60" step="1" min="1"></div>
     <div class="row"><label for="layerK">Layer pitch ×Ø</label><input type="number" id="layerK" value="1" step="0.01" min="0.5" max="1.2"></div>
-    <div class="row"><label for="tplMode">Turns / layer</label><select id="tplMode"><option value="auto">auto (fit window)</option><option value="man">manual</option></select></div>
+    <div class="row"><label for="tplMode">Turns / layer</label><select id="tplMode"><option value="auto">auto (fit tooth height)</option><option value="man">manual</option></select></div>
     <div class="row" id="tplRow" hidden><label for="tplMan">&nbsp;&nbsp;↳ per layer</label><input type="number" id="tplMan" value="19" step="1" min="1"></div>
     <p class="sub">0.87 ≈ nested (orthocyclic) layer pitch; 1.0 = square stacking.</p>
   </fieldset>
@@ -248,10 +248,11 @@ pre.gcode i{color:var(--ink3);font-style:normal}
 
   <fieldset>
     <legend><span class="n">06</span>Heights</legend>
-    <div class="row"><label for="z0">Window floor Z</label><input type="number" id="z0" value="0" step="0.1"></div>
+    <div class="row"><label for="z0">Tooth base Z</label><input type="number" id="z0" value="0" step="0.1"></div>
     <div class="row"><label for="zSafe">Safe / travel Z</label><input type="number" id="zSafe" value="45" step="1"></div>
     <div class="row"><label for="parkX">Park X</label><input type="number" id="parkX" value="5" step="1"></div>
     <div class="row"><label for="parkY">Park Y</label><input type="number" id="parkY" value="210" step="1"></div>
+    <p class="sub">Z is the needle tip. Touch the surface the coil sits on, <code>G92 Z0</code> there, and leave this at 0 — tooth height is measured up from it.</p>
   </fieldset>
 
   <fieldset>
@@ -269,7 +270,7 @@ pre.gcode i{color:var(--ink3);font-style:normal}
 
   <fieldset>
     <legend><span class="n">08</span>Output</legend>
-    <div class="row"><label for="startSeq">Start sequence</label><select id="startSeq"><option value="home">home X/Y (Z by hand)</option><option value="none">no homing — G92 only</option></select></div>
+    <div class="row"><label for="startSeq">Start sequence</label><select id="startSeq"><option value="home">home X/Y (Z by hand)</option><option value="blind">blind — start at yoke centre</option><option value="none">no homing — G92 only</option></select></div>
     <label class="chk"><input type="checkbox" id="optDry" checked> Clearance lap before each tooth</label>
     <label class="chk"><input type="checkbox" id="optAlign" checked> Alignment lap file (marker, once)</label>
     <div class="row"><label for="alignWhich">&nbsp;&nbsp;↳ trace</label><select id="alignWhich">
@@ -724,6 +725,17 @@ function clearance(p,geo){
 /* ============================================================
    G-code
    ============================================================ */
+// Pressing Stop makes Marlin inject EVENT_GCODE_SD_ABORT ("G28XY" on stock
+// Creality), which sweeps at the current height. Every file says so.
+const ABORT_NOTE=[
+`;---------------------------------------------------------------`,
+`; TO STOP SAFELY — pause, raise Z clear, THEN press Stop.`,
+`;   Marlin injects G28 X Y on abort (EVENT_GCODE_SD_ABORT) and`,
+`;   sweeps the head sideways at whatever height it is at, which`,
+`;   drags the needle through the core. The power switch is the`,
+`;   only stop that runs no script at all.`,
+];
+
 function feeds(p,geo){
   const mlt=geo.pathLen/p.turns;
   const F=Math.max(30,Math.round(p.rateMode==='rpm'?p.rateVal*mlt:p.rateVal));
@@ -784,7 +796,21 @@ function header(p,geo,fd,st,cl,which){
   const now=new Date().toISOString().slice(0,16).replace('T',' ');
   const st0=placer(p,which??p.teeth[0])(geo.path[0].x,geo.path[0].y);
   const wm=$('wMode').value;
-  const start = p.startSeq==='home'
+  const start = p.startSeq==='blind'
+    ? [`; SET-UP — BLIND START. Nothing is homed, nothing is measured.`,
+       `;   1. Clamp the yoke anywhere on the bed, turned by eye so that`,
+       `;      tooth 1 points ${p.ang0.toFixed(1)} deg CCW from +X, as the Bed view`,
+       `;      shows it. Everything else follows from tooth 1.`,
+       `;   2. Remove the nozzle, fit the guide.`,
+       `;   3. Jog the needle tip to the CENTRE of the yoke, down on`,
+       `;      the surface the coils will sit on.`,
+       `;   4. Start this file from there. It pauses once to let you`,
+       `;      confirm, then declares that point to be`,
+       `;        X${f3(p.cx)} Y${f3(p.cy)} Z${f3(p.z0)}`,
+       `;      and every move follows from it.`,
+       `;   Only as accurate as your eye — good enough for a dry run,`,
+       `;   not for committing wire. Use the touch-off route for that.`]
+    : p.startSeq==='home'
     ? [`; SET-UP`,
        `;   1. Remove the nozzle, fit the guide, thread the wire.`,
        `;   2. Raise Z by hand until the needle clears the core.`,
@@ -794,7 +820,7 @@ function header(p,geo,fd,st,cl,which){
        `;      and send  G92 Z${f3(p.z0)}  before resuming.`]
     : [`; SET-UP — nothing is homed.`,
        `;   Jog the needle tip to  X${f3(st0[0])} Y${f3(st0[1])}  at the`,
-       `;   floor of the winding window, then send:`,
+       `;   base of the tooth, then send:`,
        `;     G92 X${f3(st0[0])} Y${f3(st0[1])} Z${f3(p.z0)}`];
   return [
 `;===============================================================`,
@@ -819,11 +845,13 @@ p.plane?`;         per-tooth Z from a 3-point plane`:null,
 `; FEED    ${fd.F} mm/min straight, ${fd.Fc} corners  (~${(fd.F/fd.mlt).toFixed(1)} turns/min)`,
 `;---------------------------------------------------------------`,
 ...start,
+...ABORT_NOTE,
 `;===============================================================`,
 `G21`,
 `G90`,
 `M107`,
 ...(p.startSeq==='home'?[`M0 Z clear of core?`,`G28 X Y`,`M0 Touch yoke, G92 Z0`]:[]),
+...(p.startSeq==='blind'?[`M0 Tip at yoke centre?`,`G92 X${f3(p.cx)} Y${f3(p.cy)} Z${f3(p.z0)}`]:[]),
 ...(p.limits?[
 `M201 X${Math.round(p.accel)} Y${Math.round(p.accel)}`,
 `M204 P${Math.round(p.accel)} T${Math.round(p.accel)}`,
@@ -867,8 +895,14 @@ function alignFile(p,geo){
 `;   uneven flank to flank  -> tooth 1 angle is off`,
 `;   mark fades on one side -> yoke face is not level (fit the Z plane)`,
 `; Teeth traced: ${which.join(', ')}`,
+...(p.startSeq==='blind'?[
+`; BLIND START — jog the tip to the CENTRE of the yoke, down on the`,
+`; surface the coils sit on, then run this. Drawing the layer-1 path`,
+`; is the quickest way to see whether your eyeballed angle is right.`]:[]),
+...ABORT_NOTE,
 `G21`,`G90`,`M107`,
 ...(p.startSeq==='home'?[`M0 Z clear of core?`,`G28 X Y`,`M0 Touch yoke, G92 Z0`]:[]),
+...(p.startSeq==='blind'?[`M0 Tip at yoke centre?`,`G92 X${f3(p.cx)} Y${f3(p.cy)} Z${f3(p.z0)}`]:[]),
 ];
   for(const i of which){
     const map=placer(p,i), z=p.z0+p.markZ+zOffset(p,i);
@@ -903,6 +937,7 @@ function helperFile(p){
 `;      the target; jog X/Y in until the continuity tester beeps,`,
 `;      read X and Y off the LCD, then resume.`,
 `;   3. Type the readings into the alignment panel.`,
+...ABORT_NOTE,
 `G21`,`G90`,`M0 Z at mid-rim?`,`G28 X Y`];
   const back=(ux,uy)=>[`G91`,`G0 X${f3(ux*10)} Y${f3(uy*10)} F1200`,`G90`];
   const nPts=Math.max(3,p.fit?p.fit.res.length:5);
@@ -977,6 +1012,11 @@ function checks(p,geo,fd,cl,bbox){
       add('warn','needle',`${cl.gap.toFixed(2)} mm of slot at r ${cl.at.toFixed(1)} mm against a ${needle.toFixed(1)} mm needle. Workable, but there is nothing spare.`);
     else
       add('ok','clearance',`${cl.gap.toFixed(2)} mm of slot remains at r ${cl.at.toFixed(1)} mm — ${(cl.gap-needle).toFixed(2)} mm clear of the needle.`);
+  }
+  if(p.startSeq==='blind'){
+    add('warn','blind',`Blind start: the file declares wherever the needle happens to be standing to be X${p.cx.toFixed(1)} Y${p.cy.toFixed(1)} Z${p.z0.toFixed(1)}. Only as good as your eye — fine for a dry run, not for committing wire.`);
+    if(p.fit) add('bad','blind','A rim solve and a blind start contradict each other: the fitted centre belongs to a homed frame, but a blind start throws that frame away. Turn one of them off.');
+    if(p.helper) add('warn','blind','The touch-off helper homes X and Y, which a blind start does not. Use one route or the other.');
   }
   if(p.fit && p.fit.maxRes>0.15)
     add('warn','datum',`Rim fit residual is ${p.fit.maxRes.toFixed(3)} mm — one touch is probably off, or the rim is not round.`);
@@ -1322,8 +1362,21 @@ function drawBed(w,h){
     const c=map(0,p.rMid);
     label(X(c[0]),Y(c[1])+3,String(i),'#c9d2d8','center');
   }
+  // tooth-1 heading — what you line the yoke up against when placing it by eye
+  const a1=p.ang0*D2R, rr=p.rOut+16;
+  const cxp=X(p.cx), cyp=Y(p.cy);
+  const tx=X(p.cx+Math.cos(a1)*rr), ty=Y(p.cy+Math.sin(a1)*rr);
+  ctx.strokeStyle='#d7834f'; ctx.lineWidth=1.5; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(cxp,cyp); ctx.lineTo(tx,ty); ctx.stroke(); ctx.setLineDash([]);
+  const aa=Math.atan2(ty-cyp,tx-cxp), ah=8;
+  ctx.beginPath(); ctx.moveTo(tx,ty);
+  ctx.lineTo(tx-ah*Math.cos(aa-0.38), ty-ah*Math.sin(aa-0.38));
+  ctx.lineTo(tx-ah*Math.cos(aa+0.38), ty-ah*Math.sin(aa+0.38));
+  ctx.closePath(); ctx.fillStyle='#d7834f'; ctx.fill();
+  label(tx+(Math.cos(aa)>=0?9:-9), ty+4, `tooth 1 · ${p.ang0.toFixed(1)}°`, '#d7834f', Math.cos(aa)>=0?'left':'right');
+
   ctx.fillStyle='#c9d2d8'; ctx.beginPath(); ctx.arc(X(p.cx),Y(p.cy),2.5,0,TAU); ctx.fill();
-  label(X(p.cx)+6,Y(p.cy)-5,`${p.cx.toFixed(2)}, ${p.cy.toFixed(2)}`,'#8d9aa4');
+  label(X(p.cx),Y(p.cy)+17,`${p.cx.toFixed(2)}, ${p.cy.toFixed(2)}`,'#8d9aa4','center');
   ctx.fillStyle='#9aa6ae'; ctx.beginPath(); ctx.arc(X(p.parkX),Y(p.parkY),3,0,TAU); ctx.fill();
   label(X(p.parkX)+7,Y(p.parkY)+3,'park','#8d9aa4');
   label(14,22,`Bed ${p.bedX} × ${p.bedY} mm · ${p.teeth.length} of ${p.nTeeth} teeth selected`,'#8d9aa4');

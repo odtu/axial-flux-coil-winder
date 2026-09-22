@@ -40,6 +40,11 @@ A single self-contained HTML file. No build step, no dependencies, no server —
 > [!WARNING]
 > **Never send `G28 Z` with the core on the bed.** The Z endstop on an Ender 3 is a fixed switch on the left upright, so the needle will reach the lamination long before the switch trips. The generator never emits it. Homing X and Y is safe — neither moves the Z axis.
 
+> [!CAUTION]
+> **Do not press *Stop print* while winding.** Marlin injects a homing move on abort — `EVENT_GCODE_SD_ABORT`, which Creality ships as `"G28XY"` — and it sweeps the needle sideways *at whatever height it is at*. Mid-wind that drags it straight through the lamination and the coil.
+>
+> Instead: **pause, raise Z clear, then stop.** The power switch is the only stop that runs no script at all — and losing machine position costs nothing here, since the core stays clamped and you re-home X/Y with Z raised anyway.
+
 **1 — Open the tool.** Open `index.html` in any browser. Everything runs locally; nothing is uploaded.
 
 **2 — Enter your stator.** Panel 01: inner radius, outer radius, tooth count, and how the tooth width is defined. Panel 02: wire diameter and turns.
@@ -51,6 +56,8 @@ A single self-contained HTML file. No build step, no dependencies, no server —
 **5 — Verify with a marker.** Put a fine marker in the guide and run `align_lap.gcode`. It draws layer 1's path at the yoke face. Measure the gap between the mark and the lamination edge at the inner end, the outer end and both flanks — if it is even, your centre and angle are right.
 
 **6 — Wind.** Fit the needle, touch off Z on the yoke face, and run the coil file. It traces one slow clearance lap around each tooth before committing wire.
+
+> **Just want to watch it move?** Set *Start sequence* to **blind** and skip steps 4 and 5. Clamp the yoke anywhere, turned by eye to match the arrow in the Bed view, jog the needle to the centre of the yoke at the tooth base, and run. The file declares that point to be the machine centre and works from there — eyeball accuracy, right for a dry run, not for wire.
 
 ---
 

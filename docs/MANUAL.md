@@ -119,6 +119,9 @@ Instead: home X and Y normally, measure where the core actually is, and type two
 > [!IMPORTANT]
 > `G28 X` and `G28 Y` do **not** move the Z axis on an Ender 3 — the gantry sweeps sideways at whatever height it is already at. With Z raised clear by hand first, homing X and Y is completely safe with the core clamped. Only `G28 Z` is dangerous, and the generator never emits it.
 
+> [!CAUTION]
+> **That precondition is exactly what aborting violates.** Pressing *Stop print* makes Marlin inject `EVENT_GCODE_SD_ABORT`, which Creality's stock build defines as `"G28XY"`. Mid-wind the needle is down in the slot, so that home sweeps it sideways through the lamination and the coil. See [stopping safely](#stopping-safely).
+
 ### The procedure
 
 ![Alignment panel](images/panel-alignment.png)
@@ -134,6 +137,18 @@ Set *Rim radius you touch* to the radius of the feature you are actually touchin
 Worth doing: repeat on the tooth roughly opposite. If the two disagree by more than a few tenths of a degree, your *centre* is off, not your angle.
 
 **Z plane.** Zero Z on the first yoke touch, then read Z at two more teeth around 120° apart. An Ender 3 bed is commonly out by 0.2–0.4 mm across an 85 mm circle, and the yoke face may not be flat either. Against a 0.87 mm wire pitch that is a third of a turn — enough that the first layer climbs unevenly on one side of the machine. The fitted plane is applied as a per-tooth Z offset, and each tooth's block in the G-code is annotated with its correction.
+
+### Blind placement
+
+There is a shortcut for when you just want to watch the thing move. Set **Start sequence** to `blind` and skip measuring entirely:
+
+1. Clamp the yoke anywhere on the bed, turned by eye so tooth 1 points the way the **Bed view** shows — it draws a dashed arrow from the centre through tooth 1, labelled with the angle.
+2. Jog the needle tip to the **centre of the yoke**, down on the surface the coils sit on.
+3. Run the file from there. It pauses once to let you confirm, then emits `G92 X<cx> Y<cy> Z<z0>` — declaring that point to be the machine centre — and every move follows from it.
+
+Nothing is homed and nothing is measured, so accuracy is whatever your eye managed. That is fine for a dry run, a clearance check, or confirming the path looks sane; it is not good enough to commit wire. The tool flags a warning whenever this mode is selected.
+
+It pairs well with the alignment lap: a marker in the guide plus a blind start draws the layer-1 path immediately, which is the fastest way to see whether your eyeballed angle was close. The rim solve, by contrast, contradicts a blind start — the fitted centre belongs to a homed frame that a blind start throws away — and the tool will tell you so.
 
 **Verify.** Marker in the guide, run `align_lap.gcode`, measure the gap with calipers at four places. It should equal the layer-1 standoff — 1.785 mm at the default needle and wire — all the way round.
 
@@ -197,9 +212,11 @@ Machine centre X/Y, tooth 1 angle, and which teeth to wind (`1-12`, or `1,3,5`).
 
 ### 06 — Heights
 
+![Heights panel](images/panel-heights.png)
+
 | Field | Meaning |
 |---|---|
-| **Window floor Z** | Z of the yoke face, where the first turn lands. Normally 0 after touching off |
+| **Tooth base Z** | Z of the surface the coil sits on — the yoke face at the foot of the tooth, where the first turn lands. Normally 0, because you touch off there and send `G92 Z0`. Tooth height is measured up from it |
 | **Safe / travel Z** | Height for all repositioning moves |
 | **Park X / Y** | Where the head goes when the job finishes |
 
@@ -223,7 +240,7 @@ Machine centre X/Y, tooth 1 angle, and which teeth to wind (`1-12`, or `1,3,5`).
 
 | Option | Effect |
 |---|---|
-| **Start sequence** | `home X/Y` emits the lift-prompt, `G28 X Y` and a Z touch-off prompt. `no homing` emits neither and gives you a `G92` line to send by hand |
+| **Start sequence** | `home X/Y` emits the lift prompt, `G28 X Y` and a Z touch-off prompt. `blind` declares wherever the needle is standing to be the machine centre — see [blind placement](#blind-placement). `no homing` emits neither and gives you a `G92` line to send by hand |
 | **Clearance lap** | One slow lap of the widest loop before each tooth |
 | **Alignment lap file** | A separate marker file — see [section 8](#8-the-two-check-laps) |
 | **LCD progress** | `M117` messages for tooth and layer |
@@ -329,6 +346,30 @@ Both run at the check-lap feed rather than travel speed, so that you can watch t
 | `M400` | Wait for the buffer to drain before parking |
 | `M300` | Completion beep |
 
+### Stopping safely
+
+Nothing in the generated file runs after an abort — Marlin flushes the queue. What runs instead comes from the firmware, and it is the one real hazard left in this workflow.
+
+`Configuration_adv.h` carries:
+
+```c
+#define EVENT_GCODE_SD_ABORT "G28XY"   // G-code to run on Stop Print (e.g., "G28XY" or "G27")
+```
+
+(named `EVENT_GCODE_SD_STOP` before Marlin 2.0). Creality ships that default, so **Stop print** injects `G28 X Y`. Homing X and Y is safe when Z is clear — that is the whole basis of the start sequence — but mid-wind the needle is down in the slot at 0–17 mm, and the gantry will sweep to the left and front limits at that height, dragging the needle through the lamination and whatever is already wound.
+
+Three ways to handle it:
+
+| | |
+|---|---|
+| **Pause → raise → stop** | Pause from the LCD, jog Z up 20 mm from the menu, *then* Stop. The abort's `G28 X Y` is harmless once the needle is clear. Costs nothing, needs no reflash — make it the habit |
+| **Power switch** | The only stop that runs no script at all. Losing machine position costs nothing here: the core stays clamped, and you re-home X/Y with Z raised before resuming anyway |
+| **Reflash** | Marlin accepts `\n`-separated commands, so `"G91\nG1 Z15 F600\nG90\nG28XY"` lifts before homing. Commenting the macro out entirely leaves the head where it stopped, which for winding is the better default |
+
+Behaviour varies between builds — there are open Marlin issues where the abort G-code does not fire at all on some LCD configurations. Test whatever you change, with the bed clear.
+
+The file header repeats this as a `TO STOP SAFELY` block, so it is in front of whoever is standing at the machine.
+
 ### What is deliberately absent
 
 - **No `G28 Z`, ever.** It would drive the guide into the lamination.
@@ -390,6 +431,8 @@ One quirk worth knowing: when the tool runs as a hosted artifact on claude.ai, t
 **Backlash** inflates the fitted rim radius. Approach every touch from outside so it cancels in the centre, and treat the fitted radius as a diagnostic rather than a measurement.
 
 **Time estimates are optimistic.** Acceleration is ignored, and on a ~100 mm loop with four corners the real average can be half the commanded feedrate.
+
+**Aborting is a firmware hazard, not a software one.** Stock Marlin homes X and Y on *Stop print*, and mid-wind that sweeps the needle through the core. No generated file can prevent it, because abort flushes the queue. Pause, raise Z, then stop — or use the power switch. See [stopping safely](#stopping-safely).
 
 **No probing.** `G38.2` would need `G38_PROBE_TARGET`, which stock Creality firmware does not compile. A Marlin rebuild or Klipper would allow it; the manual touch-off is the fallback and is accurate to about 0.02 mm with a continuity beeper.
 
