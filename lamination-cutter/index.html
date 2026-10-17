@@ -1,0 +1,1420 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,sans-serif;background:#f1f3ef}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Lamination Cutter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f1f3ef; --panel:#ffffff; --panel2:#e8ebe4; --sunk:#dfe3da;
+  --line:#d2d7ca; --line2:#bcc3b3;
+  --ink:#1a1e20; --ink2:#5b6461; --ink3:#848d88;
+  --steel:#41708c; --steel2:#2d5570; --copper:#b1552a;
+  --ok:#3a7350; --warn:#8e6410; --bad:#9f3527;
+  --okBg:#e2efe5; --warnBg:#f6ecd6; --badBg:#f7e1dd;
+  --view:#13161a;
+  --r:3px;
+  --sans:"Barlow",ui-sans-serif,system-ui,sans-serif;
+  --cond:"Barlow Condensed","Barlow",ui-sans-serif,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#131719; --panel:#1b1f22; --panel2:#22272a; --sunk:#171b1d;
+  --line:#2f3639; --line2:#414a4e;
+  --ink:#e5e9e5; --ink2:#9ba5a1; --ink3:#78827e;
+  --steel:#6fa3c4; --steel2:#41708c; --copper:#d77a45;
+  --ok:#6fb98a; --warn:#d1a24b; --bad:#d9705f;
+  --okBg:#1c2b22; --warnBg:#2e2717; --badBg:#301d1a;
+  --view:#0f1215;
+}}
+:root[data-theme="dark"]{
+  --bg:#131719; --panel:#1b1f22; --panel2:#22272a; --sunk:#171b1d;
+  --line:#2f3639; --line2:#414a4e;
+  --ink:#e5e9e5; --ink2:#9ba5a1; --ink3:#78827e;
+  --steel:#6fa3c4; --steel2:#41708c; --copper:#d77a45;
+  --ok:#6fb98a; --warn:#d1a24b; --bad:#d9705f;
+  --okBg:#1c2b22; --warnBg:#2e2717; --badBg:#301d1a;
+  --view:#0f1215;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{padding:0 16px;padding-block:18px 40px;max-width:1440px;margin:0 auto}
+.mast{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:18px}
+.mast h1{font-family:var(--cond);font-weight:700;font-size:30px;letter-spacing:.01em;margin:0;line-height:1;text-transform:uppercase}
+.mast h1 em{font-style:normal;color:var(--steel)}
+.mast p{margin:4px 0 0;color:var(--ink2);font-size:13px;max-width:58ch}
+.mast a.sib{font-family:var(--mono);font-size:11px;color:var(--ink3);text-decoration:none;border-bottom:1px solid var(--line2);white-space:nowrap}
+.mast a.sib:hover{color:var(--copper);border-color:var(--copper)}
+.cols{display:grid;grid-template-columns:336px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:1000px){.cols{grid-template-columns:minmax(0,1fr)}.rail{order:2}.stage{order:1}}
+.rail{display:flex;flex-direction:column;gap:10px}
+fieldset{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);margin:0;padding:10px 12px 12px;min-width:0}
+legend{font-family:var(--cond);font-weight:600;text-transform:uppercase;letter-spacing:.09em;font-size:12px;
+  color:var(--ink2);padding:0 6px;margin-left:-4px}
+legend .n{color:var(--steel);font-family:var(--mono);font-size:10px;margin-right:5px}
+.row{display:grid;grid-template-columns:1fr 96px;align-items:center;gap:6px 8px;padding:2.5px 0}
+.row label{font-size:12.5px;color:var(--ink2)}
+.row label b{color:var(--ink);font-weight:500}
+.u{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+input[type=number],input[type=text],select{width:100%;font-family:var(--mono);font-size:12.5px;
+  padding:4px 6px;border:1px solid var(--line2);border-radius:2px;background:var(--panel);color:var(--ink);text-align:right}
+select{text-align:left}
+input[type=color]{padding:1px;height:26px;cursor:pointer}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--steel);outline-offset:1px}
+.chk{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12.5px;color:var(--ink2);cursor:pointer}
+.chk input{accent-color:var(--steel);margin:0;flex:none}
+.sub{grid-column:1/-1;font-size:11px;color:var(--ink3);margin:2px 0 4px;line-height:1.45}
+.sub code{font-family:var(--mono);font-size:10.5px}
+hr.sep{border:0;border-top:1px dashed var(--line);margin:9px -12px 8px}
+.derived{font-family:var(--mono);font-size:11px;color:var(--ink2);background:var(--panel2);
+  border-radius:2px;padding:6px 8px;margin-top:8px;line-height:1.7}
+.derived b{color:var(--steel);font-weight:500}
+.stage{display:flex;flex-direction:column;gap:14px}
+.viewbox{background:var(--view);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.vbar{display:flex;align-items:center;gap:4px;padding:6px 8px;border-bottom:1px solid #2a3138;flex-wrap:wrap}
+.tab{font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;font-size:12px;font-weight:600;
+  background:none;border:1px solid transparent;color:#8d9aa4;padding:3px 10px;border-radius:2px;cursor:pointer}
+.tab[aria-selected=true]{color:#fff;border-color:#3b454d;background:#1e252b}
+.vbar .spacer{flex:1}
+.vbar .hint{font-family:var(--mono);font-size:10px;color:#5d6871}
+canvas{display:block;width:100%;height:460px;touch-action:none}
+@media (max-width:1000px){canvas{height:340px}}
+.readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:0;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.ro{background:var(--panel);padding:8px 10px;box-shadow:1px 0 0 var(--line),0 1px 0 var(--line)}
+.ro dt{font-family:var(--cond);text-transform:uppercase;letter-spacing:.07em;font-size:10.5px;color:var(--ink3);margin:0}
+.ro dd{margin:1px 0 0;font-family:var(--mono);font-size:16px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink)}
+.ro dd s{text-decoration:none;font-size:10.5px;color:var(--ink3);margin-left:2px}
+.notes{display:flex;flex-direction:column;gap:6px}
+.note{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;padding:7px 10px;border-radius:2px;border-left:3px solid}
+.note .k{font-family:var(--cond);text-transform:uppercase;letter-spacing:.07em;font-weight:600;font-size:11px;flex:none;padding-top:1px}
+.n-bad{background:var(--badBg);border-color:var(--bad);color:var(--bad)}
+.n-warn{background:var(--warnBg);border-color:var(--warn);color:var(--warn)}
+.n-ok{background:var(--okBg);border-color:var(--ok);color:var(--ok)}
+.note span.t{color:var(--ink)}
+.out{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden}
+.outbar{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.outbar h2{font-family:var(--cond);text-transform:uppercase;letter-spacing:.09em;font-size:13px;margin:0;font-weight:600}
+.outbar .meta{font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.outbar .spacer{flex:1}
+.outbar select{width:auto;min-width:130px}
+button.act{font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;font-weight:600;font-size:12px;
+  border:1px solid var(--line2);background:var(--panel2);color:var(--ink);padding:5px 12px;border-radius:2px;cursor:pointer}
+button.act:hover{border-color:var(--ink3)}
+button.act.pri{background:var(--steel);border-color:var(--steel2);color:#fff}
+button.act.pri:hover{background:var(--steel2)}
+button.act[disabled]{opacity:.45;cursor:not-allowed}
+table.parts{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+table.parts th{font-family:var(--cond);text-transform:uppercase;letter-spacing:.07em;font-size:10.5px;
+  color:var(--ink3);text-align:right;padding:6px 10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel)}
+table.parts th:first-child{text-align:left}
+table.parts td{padding:3px 10px;text-align:right;color:var(--ink2);font-variant-numeric:tabular-nums}
+table.parts td:first-child{text-align:left;color:var(--steel)}
+table.parts tr:nth-child(even) td{background:var(--sunk)}
+.scroll{max-height:290px;overflow:auto}
+.foot{margin-top:22px;padding-top:12px;border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px 26px}
+.foot section h3{font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;font-size:11.5px;color:var(--ink2);margin:0 0 4px}
+.foot p{margin:0 0 6px;font-size:12.5px;color:var(--ink3);line-height:1.5}
+.foot code{font-family:var(--mono);font-size:11.5px;color:var(--ink2)}
+.credit{margin:18px 0 0;padding-top:11px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:11px;color:var(--ink3);text-align:center}
+.credit a{color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--line2)}
+.credit a:hover{color:var(--copper);border-color:var(--copper)}
+.credit b{color:var(--ink2);font-weight:500}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head><body>
+
+
+<div class="wrap">
+<header class="mast">
+  <div>
+    <h1>Lamination <em>Cutter</em></h1>
+    <p>Fibre-laser SVGs for yokeless axial-flux teeth. Sheets stack outward in the radial direction, so every part is a plain rectangle and the tooth comes out as a trapezoidal prism with flat inner and outer faces.</p>
+  </div>
+  <a class="sib" href="../index.html">← Axial Coil Winder</a>
+</header>
+
+<div class="cols">
+<form class="rail" id="form" autocomplete="off">
+
+  <fieldset>
+    <legend><span class="n">01</span>Stator</legend>
+    <div class="row"><label for="rOut">Outer radius <b>r₂</b></label><input type="number" id="rOut" value="40" step="0.5" min="2"></div>
+    <div class="row"><label for="rIn">Inner radius <b>r₁</b></label><input type="number" id="rIn" value="24" step="0.5" min="1"></div>
+    <div class="row"><label for="nTeeth">Tooth count <b>N</b></label><input type="number" id="nTeeth" value="12" step="1" min="1"></div>
+    <div class="row"><label for="wMode">Tooth width from</label><select id="wMode">
+      <option value="ratio">tooth / slot pitch</option><option value="angle">tooth angle</option>
+      <option value="widths">measured widths</option></select></div>
+    <div class="row" id="rowRatio"><label for="tRatio">&nbsp;&nbsp;↳ ratio</label><input type="number" id="tRatio" value="0.5" step="0.01" min="0.05" max="0.98"></div>
+    <div class="row" id="rowAngle" hidden><label for="tAngle">&nbsp;&nbsp;↳ span <span class="u">°</span></label><input type="number" id="tAngle" value="15" step="0.1" min="0.5"></div>
+    <div class="row" id="rowWIn" hidden><label for="wIn">&nbsp;&nbsp;↳ width at r₁</label><input type="number" id="wIn" value="6.27" step="0.1" min="0.5"></div>
+    <div class="row" id="rowWOut" hidden><label for="wOut">&nbsp;&nbsp;↳ width at r₂</label><input type="number" id="wOut" value="10.44" step="0.1" min="0.5"></div>
+    <div class="row"><label for="h">Tooth height <b>h</b></label><input type="number" id="h" value="28" step="0.1" min="1"></div>
+    <div class="derived" id="geoOut"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="n">02</span>Lamination</legend>
+    <div class="row"><label for="t">Sheet thickness</label><input type="number" id="t" value="0.2" step="0.05" min="0.1"></div>
+    <div class="row"><label for="sf">Stacking factor</label><input type="number" id="sf" value="0.96" step="0.01" min="0.5" max="1"></div>
+    <div class="row"><label for="groupMode">Widths</label><select id="groupMode">
+      <option value="group">grouped into classes</option><option value="exact">one per sheet (exact)</option></select></div>
+    <div class="row" id="rowGroups"><label for="groups">&nbsp;&nbsp;↳ classes</label><input type="number" id="groups" value="16" step="1" min="1"></div>
+    <div class="row"><label for="partR">Part corner radius</label><input type="number" id="partR" value="0.3" step="0.1" min="0"></div>
+    <p class="sub">Adjacent sheets differ in width by less than the kerf, so cutting one per sheet is false precision. Grouping into classes collapses the part count and costs only a small flank error.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="n">03</span>Pole shoes</legend>
+    <label class="chk"><input type="checkbox" id="shoeOn"> Add pole shoes</label>
+    <div id="shoeBox" hidden>
+      <div class="row"><label for="shoeMode">Form</label><select id="shoeMode">
+        <option value="int">integrated — one I-shaped part</option>
+        <option value="sep">separate end plates</option></select></div>
+      <div class="row"><label for="shoeRatio">Face / slot pitch</label><input type="number" id="shoeRatio" value="0.8" step="0.01" min="0.1" max="0.99"></div>
+      <div class="row"><label for="shoeT">Shoe thickness</label><input type="number" id="shoeT" value="3" step="0.1" min="0.2"></div>
+      <p class="sub" id="shoeIntNote"><b>Integrated</b> cuts each sheet as one I-shape, flanges included. The slot is then closed, so the coil has to go on by hand or pre-wound — the needle winder cannot reach in.</p>
+      <p class="sub" id="shoeSepNote" hidden><b>Separate</b> shortens the body sheets and caps each end with its own plate, bonded on after winding. Keeps the needle winder usable.</p>
+    </div>
+    <p class="sub" id="shoeOff">Off: parallel flanks, so the coil can be wound straight onto the tooth with the winder.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="n">04</span>Cutting</legend>
+    <div class="row"><label for="kerf">Kerf width</label><input type="number" id="kerf" value="0.1" step="0.01" min="0"></div>
+    <div class="row"><label for="speed">Cut speed <span class="u">m/min</span></label><input type="number" id="speed" value="8" step="0.5" min="0.1"></div>
+    <label class="chk"><input type="checkbox" id="mtOn" checked> Micro-tabs — hold parts in the sheet</label>
+    <div class="row" id="rowMt" hidden><label for="mtW">&nbsp;&nbsp;↳ bridge width</label><input type="number" id="mtW" value="0.3" step="0.05" min="0.05"></div>
+    <label class="chk"><input type="checkbox" id="engOn" checked> Engrave index on each part</label>
+    <div class="row"><label for="engMin">&nbsp;&nbsp;↳ min part length</label><input type="number" id="engMin" value="4" step="0.5" min="0"></div>
+    <div class="row"><label for="engH">&nbsp;&nbsp;↳ digit height</label><input type="number" id="engH" value="3" step="0.5" min="1"></div>
+    <div class="row"><label for="cutCol">Cut colour</label><input type="color" id="cutCol" value="#ff0000"></div>
+    <div class="row"><label for="engCol">Engrave colour</label><input type="color" id="engCol" value="#0000ff"></div>
+    <p class="sub">Micro-tabs leave two small bridges of uncut steel per part, always on an edge with no job in the machine: the retention-tab tips, the flange tips, or the end faces. Outlines are offset outward by half the kerf. Digits are drawn as strokes, not text, so no font has to survive the trip into your laser software.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="n">05</span>Sheet</legend>
+    <div class="row"><label for="shW">Sheet width</label><input type="number" id="shW" value="200" step="10" min="20"></div>
+    <div class="row"><label for="shH">Sheet height</label><input type="number" id="shH" value="200" step="10" min="20"></div>
+    <div class="row"><label for="marg">Edge margin</label><input type="number" id="marg" value="5" step="1" min="0"></div>
+    <div class="row"><label for="gap">Part spacing</label><input type="number" id="gap" value="1.5" step="0.1" min="0.2"></div>
+    <div class="row"><label for="fitMode">Size</label><select id="fitMode">
+      <option value="fit">fit to the parts</option><option value="fixed" selected>fixed sheet</option></select></div>
+    <div class="row"><label for="teethPer">Teeth per file</label><input type="number" id="teethPer" value="1" step="1" min="1"></div>
+    <p class="sub">One tooth per file by default — cut it, move to fresh material, run it again. Width still wraps the rows; <i>fit to the parts</i> then trims the height so the SVG is a compact tile. Tooth height runs along sheet Y, so put the rolling direction on that axis.</p>
+  </fieldset>
+  <fieldset>
+    <legend><span class="n">06</span>Retention frame</legend>
+    <label class="chk"><input type="checkbox" id="retOn" checked> Mid-height tabs + printed frame</label>
+    <div id="retBox" hidden>
+      <div class="row"><label for="frameT">Frame thickness, assembled</label><input type="number" id="frameT" value="8" step="0.1" min="1"></div>
+      <div class="row"><label for="tabH">Tab height</label><input type="number" id="tabH" value="2" step="0.1" min="0.3"></div>
+      <div class="row"><label for="tabD">Tab depth, per flank</label><input type="number" id="tabD" value="2" step="0.1" min="0.2"></div>
+      <div class="row"><label for="fGap">Clamp gap</label><input type="number" id="fGap" value="0.2" step="0.05" min="0"></div>
+      <div class="row"><label for="fClr">Pocket clearance</label><input type="number" id="fClr" value="0.15" step="0.05" min="0"></div>
+      <hr class="sep">
+      <div class="row"><label for="ringIn">Inner ring width</label><input type="number" id="ringIn" value="9" step="0.5" min="0"></div>
+      <div class="row"><label for="ringOut">Outer ring width</label><input type="number" id="ringOut" value="9" step="0.5" min="2"></div>
+      <div class="row"><label for="boltD">Bolt hole Ø</label><input type="number" id="boltD" value="3.4" step="0.1" min="0"></div>
+      <div class="row"><label for="boltEvery">Bolt every <span class="u">n</span> slots</label><input type="number" id="boltEvery" value="1" step="1" min="1"></div>
+      <div class="row"><label for="coilB">Coil build allowance</label><input type="number" id="coilB" value="4" step="0.5" min="0"></div>
+      <div class="row"><label for="notchW">Lead notch width</label><input type="number" id="notchW" value="2.5" step="0.1" min="0"></div>
+      <label class="chk"><input type="checkbox" id="ribOn" checked> Crush ribs on the outer pocket wall</label>
+      <div class="row"><label for="Bg">Air-gap B, for the load <span class="u">T</span></label><input type="number" id="Bg" value="0.8" step="0.05" min="0"></div>
+      <div class="derived" id="frameOut"></div>
+      <p class="sub">Every sheet gets a tab on both flanks at mid-height. Two identical frame halves drop on from each end of the tooth, trap the tabs between them and bolt together. The recesses are shallower than the tab by the clamp gap, so the faces never touch and the tabs take all the bolt load: no play. Wind each half of the coil afterwards, on its own frame face.</p>
+    </div>
+    <p class="sub" id="retOff">Off: plain rectangles. Hold the stack by bonding, or with a fixture of your own.</p>
+  </fieldset>
+</form>
+
+<div class="stage">
+  <div class="viewbox">
+    <div class="vbar">
+      <button type="button" class="tab" id="tab3D" aria-selected="true">3D</button>
+      <button type="button" class="tab" id="tabStack" aria-selected="false">Stack</button>
+      <button type="button" class="tab" id="tabParts" aria-selected="false">Parts</button>
+      <button type="button" class="tab" id="tabSheet" aria-selected="false">Sheet</button>
+      <button type="button" class="tab" id="tabFrame" aria-selected="false" hidden>Frame</button>
+      <span class="spacer"></span>
+      <button type="button" class="tab" id="tabFr3" aria-selected="true" hidden>Frame</button>
+      <button type="button" class="tab" id="tabDims" aria-selected="true">Dims</button>
+      <span class="hint" id="vhint">drag to orbit · shift-drag to pan · wheel to zoom</span>
+    </div>
+    <canvas id="cv"></canvas>
+  </div>
+
+  <dl class="readouts" id="readouts"></dl>
+  <div class="notes" id="notes"></div>
+
+  <div class="out">
+    <div class="outbar">
+      <h2>Output</h2>
+      <select id="fileSel"></select>
+      <span class="meta" id="meta"></span>
+      <span class="spacer"></span>
+      <button type="button" class="act" id="btnCsv">Parts list</button>
+      <button type="button" class="act" id="btnAll" hidden>All · zip</button>
+      <button type="button" class="act" id="btnFrame" hidden>Frame · zip</button>
+      <button type="button" class="act pri" id="btnSave">Download SVG</button>
+    </div>
+    <div class="scroll"><table class="parts" id="ptable"></table></div>
+  </div>
+
+  <div class="foot">
+    <section>
+      <h3>Why the sheets stack outward</h3>
+      <p>Flux in an axial-flux tooth runs along the machine axis, so the sheets only have to lie in planes containing that direction. Stacking them radially satisfies that and puts the tangential slot-leakage flux in the sheet plane too, rather than across it. Every sheet then lies in the tangential–axial plane, which makes it a plain rectangle.</p>
+    </section>
+    <section>
+      <h3>Width classes</h3>
+      <p>Tooth width grows linearly with radius, so neighbouring sheets differ by only <code>2·t·sin α</code> — about 0.09&nbsp;mm here, finer than the beam. Grouping sheets into classes of one width each cuts the part types from 77 to a handful; the flank error is half the width change across a class, and the average width keeps the iron area intact.</p>
+    </section>
+    <section>
+      <h3>Grain direction</h3>
+      <p>Non-oriented steel is still anisotropic. Flux runs along the tooth height, so <i>h</i> should lie along the rolling direction. Every part is placed with <i>h</i> on sheet Y and never rotated, which costs a little packing efficiency and buys lower loss.</p>
+    </section>
+    <section>
+      <h3>Flat faces</h3>
+      <p>Because each sheet is flat and perpendicular to the radius, the inner and outer faces come out as chords rather than arcs — the trapezoidal approximation. At r₂&nbsp;=&nbsp;72&nbsp;mm with a 15° tooth that leaves 0.62&nbsp;mm of iron on the table at the centre of the face, which is most of the gap between the fill figure and 100%.</p>
+    </section>
+    <section>
+      <h3>Holding the teeth</h3>
+      <p>The rotors pull each tooth along the axis — about 0.25&nbsp;MPa of magnetic pressure at 0.8&nbsp;T, and only from one side while the first rotor goes on. A tab is used rather than a groove because a groove takes steel out of the narrowest part of the tooth. The pull gets stronger as a tooth moves closer to the rotor, so any play grows instead of settling. That is why the frame clamps the tabs with no clearance at all.</p>
+    </section>
+  </div>
+  <p class="credit">
+    <b>Lamination Cutter</b> · MIT licence ·
+    <a href="https://github.com/odtu/axial-flux-coil-winder/tree/main/lamination-cutter" target="_blank" rel="noopener">source &amp; manual on GitHub</a> ·
+    <a href="http://keysan.me" target="_blank" rel="noopener">Ozan Keysan</a>
+  </p>
+</div>
+</div>
+</div>
+
+<script>
+"use strict";
+const TAU=Math.PI*2, D2R=Math.PI/180, R2D=180/Math.PI;
+const $=id=>document.getElementById(id);
+const nv=(id,d)=>{const v=parseFloat($(id).value); return Number.isFinite(v)?v:d;};
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const f2=v=>(Math.abs(v)<5e-4?0:v).toFixed(2);
+const DENS=7650;                       // silicon steel, kg/m3
+
+/* ============================================================
+   geometry — laminations stack RADIALLY, outward from r1 to r2.
+   Each sheet lies in the tangential-axial plane, so every part is
+   a plain rectangle w(r) x h. Flat inner and outer faces make the
+   tooth a trapezoidal prism rather than a true sector.
+   ============================================================ */
+const cl=(v,lo,hi)=>Math.min(hi===undefined?Infinity:hi, Math.max(lo, Number.isFinite(v)?v:lo));
+function readParams(){
+  const p={
+    rIn:nv('rIn',24), rOut:nv('rOut',40), nTeeth:Math.max(1,Math.round(nv('nTeeth',12))),
+    h:cl(nv('h',28),0.5), t:cl(nv('t',0.2),0.1), sf:cl(nv('sf',0.96),0.1,1), partR:cl(nv('partR',0.3),0),
+    mtOn:$('mtOn').checked, mtW:cl(nv('mtW',0.3),0.05),
+    groupMode:$('groupMode').value, groups:Math.max(1,Math.round(nv('groups',16))),
+    shoe:$('shoeOn').checked, shoeMode:$('shoeMode').value,
+    shoeRatio:cl(nv('shoeRatio',0.8),0.05,0.99), shoeT:cl(nv('shoeT',3),0.1),
+    kerf:cl(nv('kerf',0.1),0), speed:cl(nv('speed',8),0.1),
+    eng:$('engOn').checked, engMin:nv('engMin',4), engH:nv('engH',3),
+    cutCol:$('cutCol').value, engCol:$('engCol').value,
+    shW:cl(nv('shW',200),20), shH:cl(nv('shH',200),20), marg:cl(nv('marg',5),0), gap:cl(nv('gap',1.5),0.1),
+    fitMode:$('fitMode').value, teeth:Math.max(1,Math.round(nv('teethPer',1))),
+    ret:$('retOn').checked, frameT:cl(nv('frameT',8),0.6), tabH:cl(nv('tabH',2),0.1),
+    tabD:cl(nv('tabD',2),0.05), fGap:cl(nv('fGap',0.2),0), fClr:cl(nv('fClr',0.15),0),
+    ringIn:cl(nv('ringIn',9),0), ringOut:cl(nv('ringOut',9),1), boltD:cl(nv('boltD',3.4),0),
+    boltEvery:Math.max(1,Math.round(nv('boltEvery',1))), coilB:cl(nv('coilB',4),0),
+    notchW:cl(nv('notchW',2.5),0), rib:$('ribOn').checked, Bg:cl(nv('Bg',0.8),0),
+  };
+  const pitch=TAU/p.nTeeth;
+  p.pitch=pitch;
+  p.mode=$('wMode').value;
+  if(p.mode==='widths'){
+    p.w1=nv('wIn',6.27); p.w2=nv('wOut',10.44);
+  }else{
+    const a = p.mode==='angle' ? Math.min(.49*pitch, nv('tAngle',15)*D2R/2)
+                               : Math.min(.49*pitch, nv('tRatio',.5)*pitch/2);
+    p.aBody=a; p.w1=2*p.rIn*Math.sin(a); p.w2=2*p.rOut*Math.sin(a);
+  }
+  p.aShoe = p.shoe ? Math.min(.495*pitch, Math.max(p.shoeRatio*pitch/2, Math.asin(Math.min(.999,p.w2/2/p.rOut)))) : 0;
+  p.rIn=cl(p.rIn,0.5); p.rOut=cl(p.rOut,p.rIn+p.t);
+  p.integrated = p.shoe && p.shoeMode==='int';
+  if(p.shoe) p.shoeT=Math.min(p.shoeT,(p.h-0.5)/2);   // flanges must leave a web
+  p.bodyH = (p.shoe && !p.integrated) ? Math.max(0.5, p.h-2*p.shoeT) : p.h;
+  // a frame that drops on from +z and -z cannot pass an integrated pole shoe
+  p.retBlocked = p.ret && p.integrated;
+  if(p.retBlocked) p.ret=false;
+  if(p.ret){
+    p.tabH=Math.min(p.tabH, Math.max(0.1,p.bodyH-1));
+    p.fGap=Math.min(p.fGap, p.tabH*0.9);
+  }
+  return p;
+}
+// tooth half-width at radius r — linear in r for both a sector and a plain trapezoid
+const widthAt=(p,r)=> p.w1 + (r-p.rIn)*(p.w2-p.w1)/Math.max(1e-9,p.rOut-p.rIn);
+const shoeWidthAt=(p,r)=> 2*r*Math.sin(p.aShoe);
+
+function groupRuns(n,G){
+  const runs=[]; let s=0;
+  for(let i=0;i<G;i++){
+    const e=Math.round((i+1)*n/G);
+    if(e>s) runs.push([s,e]);
+    s=e;
+  }
+  return runs;
+}
+
+function build(p){
+  const n=Math.max(1,Math.min(20000,Math.floor((p.rOut-p.rIn)/p.t)||1));
+  const r=k=>p.rIn+(k+0.5)*p.t;
+  const G = p.groupMode==='exact' ? n : Math.min(p.groups,n);
+  const runs=groupRuns(n,G);
+
+  const body=runs.map(([s,e],i)=>{
+    const rm=(r(s)+r(e-1))/2;
+    const wLo=widthAt(p,r(s)), wHi=widthAt(p,r(e-1));
+    const wb=widthAt(p,rm);
+    const q={idx:i, kind:'B', w:wb, wBody:wb, h:p.bodyH, qty:e-s,
+             rLo:r(s)-p.t/2, rHi:r(e-1)+p.t/2, err:Math.abs(wHi-wLo)/4};
+    if(p.integrated){
+      q.w=Math.max(wb, shoeWidthAt(p,rm));       // bounding width is the pole face
+      q.ts=p.shoeT; q.h=p.h;
+    } else if(p.ret){
+      q.tab={H:p.tabH, D:p.tabD};                 // mid-height tab on both flanks
+      q.w=wb+2*p.tabD;
+    }
+    q.area = q.ts ? q.w*q.h-(q.w-q.wBody)*(q.h-2*q.ts)
+           : q.tab ? q.wBody*q.h+2*q.tab.D*q.tab.H : q.w*q.h;
+    q.perim = q.ts ? 2*q.w+2*q.h+2*(q.w-q.wBody)
+            : q.tab ? 2*(q.wBody+q.h)+4*q.tab.D : 2*(q.w+q.h);
+    return q;
+  });
+  const shoe = (p.shoe && !p.integrated) ? runs.map(([s,e],i)=>{
+    const rm=(r(s)+r(e-1))/2;
+    const wLo=shoeWidthAt(p,r(s)), wHi=shoeWidthAt(p,r(e-1));
+    const w=shoeWidthAt(p,rm);
+    return {idx:i, kind:'S', w, wBody:w, h:p.shoeT, qty:(e-s)*2,
+            rLo:r(s)-p.t/2, rHi:r(e-1)+p.t/2, err:Math.abs(wHi-wLo)/4,
+            area:w*p.shoeT, perim:2*(w+p.shoeT)};
+  }) : [];
+
+  const parts=[...body,...shoe];
+  const perTooth=parts.reduce((a,q)=>a+q.qty,0);
+  const stackArea=body.reduce((a,q)=>a+q.wBody*q.qty,0)*p.t;    // body footprint, XY plane
+  // true sector area when the width came from an angle; otherwise the exact trapezoid
+  const ideal = p.aBody!=null
+    ? p.aBody*(p.rOut*p.rOut-p.rIn*p.rIn)
+    : (p.w1+p.w2)/2*(p.rOut-p.rIn);
+  const sheetArea=parts.reduce((a,q)=>a+q.area*q.qty,0);
+  const cutLen=parts.reduce((a,q)=>a+q.perim*q.qty,0);
+  const maxErr=Math.max(0,...parts.map(q=>q.err));
+  const sag = p.aBody!=null ? p.rOut*(1-Math.cos(p.aBody)) : 0;
+  return {parts,body,shoe,n,G,perTooth,stackArea,ideal,sheetArea,cutLen,maxErr,sag,
+          build:n*p.t, fill:ideal>0?stackArea/ideal:0};
+}
+
+/* ============================================================
+   nesting — rows of constant height, one part type at a time
+   ============================================================ */
+function nest(p,g){
+  const items=[];
+  for(const q of g.parts)
+    for(let c=0;c<q.qty*p.teeth;c++) items.push(q);
+  const k=p.kerf, sheets=[];
+  let sh=null, x=p.marg, y=p.marg, rowH=0;
+  const W=p.shW-p.marg, H=(p.fitMode==='fit'?1e6:p.shH)-p.marg;
+  if(items.length>60000) return {sheets,oversize:false,capped:true};
+  for(const it of items){
+    const w=Math.max(0.01,it.w+k), hh=Math.max(0.01,it.h+k);
+    if(w>W-p.marg||hh>H-p.marg) return {sheets,oversize:true};
+    if(!sh){ sh={parts:[]}; sheets.push(sh); x=p.marg; y=p.marg; rowH=0; }
+    if(x+w>W){ x=p.marg; y+=rowH+p.gap; rowH=0; }
+    if(y+hh>H){ sh={parts:[]}; sheets.push(sh); x=p.marg; y=p.marg; rowH=0; }
+    sh.parts.push({...it,px:x,py:y,pw:w,ph:hh});
+    x+=w+p.gap; rowH=Math.max(rowH,hh);
+    if(sheets.length>400) return {sheets,oversize:false,capped:true};
+  }
+  for(const s of sheets){
+    const maxY=s.parts.reduce((a,q)=>Math.max(a,q.py+q.ph),0);
+    const maxX=s.parts.reduce((a,q)=>Math.max(a,q.px+q.pw),0);
+    s.w = p.fitMode==='fit' ? Math.ceil(maxX+p.marg) : p.shW;
+    s.h = p.fitMode==='fit' ? Math.ceil(maxY+p.marg) : p.shH;
+  }
+  return {sheets,oversize:false};
+}
+
+/* ============================================================
+   SVG — seven-segment digits so no font has to survive the trip
+   ============================================================ */
+const SEG={a:[[0,1],[1,1]],b:[[1,1],[1,.5]],c:[[1,.5],[1,0]],d:[[0,0],[1,0]],
+           e:[[0,.5],[0,0]],f:[[0,1],[0,.5]],g:[[0,.5],[1,.5]]};
+const DIG={'0':'abcdef','1':'bc','2':'abged','3':'abgcd','4':'fgbc',
+           '5':'afgcd','6':'afgedc','7':'abc','8':'abcdefg','9':'abcdfg','S':'afgcd'};
+function digits(str,hh){
+  const w=hh*0.58, gx=hh*0.22, out=[];
+  [...String(str)].forEach((ch,i)=>{
+    const ox=i*(w+gx);
+    for(const s of (DIG[ch]||'')){
+      const [[x1,y1],[x2,y2]]=SEG[s];
+      out.push(`M${(ox+x1*w).toFixed(3)} ${((1-y1)*hh).toFixed(3)}L${(ox+x2*w).toFixed(3)} ${((1-y2)*hh).toFixed(3)}`);
+    }
+  });
+  return {d:out.join(''), w:String(str).length*(w+gx)-gx};
+}
+const n3=v=>v.toFixed(3);
+function roundPath(pts,r){
+  const n=pts.length, out=[];
+  for(let i=0;i<n;i++){
+    const p0=pts[(i-1+n)%n], p1=pts[i], p2=pts[(i+1)%n];
+    let ux=p1[0]-p0[0], uy=p1[1]-p0[1]; const lu=Math.hypot(ux,uy)||1; ux/=lu; uy/=lu;
+    let vx=p2[0]-p1[0], vy=p2[1]-p1[1]; const lv=Math.hypot(vx,vy)||1; vx/=lv; vy/=lv;
+    const cr=ux*vy-uy*vx, turn=Math.atan2(cr,ux*vx+uy*vy);
+    if(Math.abs(turn)<1e-6||r<=0){ out.push((i?'L':'M')+n3(p1[0])+' '+n3(p1[1])); continue; }
+    let rr=r, d=rr*Math.tan(Math.abs(turn)/2);
+    const dmax=Math.min(lu,lv)*0.49;
+    if(d>dmax){ d=dmax; rr=d/Math.tan(Math.abs(turn)/2); }
+    out.push((i?'L':'M')+n3(p1[0]-ux*d)+' '+n3(p1[1]-uy*d));
+    out.push(`A${n3(rr)} ${n3(rr)} 0 0 ${cr>0?1:0} ${n3(p1[0]+vx*d)} ${n3(p1[1]+vy*d)}`);
+  }
+  return out.join('')+'Z';
+}
+/* micro-tabs: bridges of uncut steel that keep each part in the sheet.
+   They go on the one edge of each part type that has no job in the machine:
+     tabbed body  → the tip of each retention tab (the stub sits in the recess clearance)
+     I-shape      → two diagonally opposite flange tips (the slot-opening sides)
+     shoe plate   → its two short ends (also slot-opening sides)
+     plain body   → mid-point of both end faces — they line up across the stack,
+                    so one stroke of a file dresses every stub at once
+   Never on a flank: that is the coil face and the frame-pocket fit. */
+function partPts(q,k){
+  return outline(q,k) || [[0,0],[q.w+k,0],[q.w+k,q.h+k],[0,q.h+k]];
+}
+function bridgeEdges(q){
+  if(q.ts)  return [2,8];
+  if(q.tab) return [3,9];
+  if(q.kind==='S') return [1,3];
+  return [0,2];
+}
+// closed outline with fillets, broken by a gap in the middle of each listed edge.
+// Returns {d, made}: the SVG path and how many bridges actually fitted.
+function bridgeMarks(q,k){                     // edge mid-points, local coords
+  const P=partPts(q,k);
+  return bridgeEdges(q).map(i=>{const a=P[i], b=P[(i+1)%P.length]; return [(a[0]+b[0])/2,(a[1]+b[1])/2];});
+}
+function cutPath(pts,r,edges,gap){
+  const n=pts.length, C=[];
+  for(let i=0;i<n;i++){
+    const p0=pts[(i-1+n)%n], p1=pts[i], p2=pts[(i+1)%n];
+    let ux=p1[0]-p0[0], uy=p1[1]-p0[1]; const lu=Math.hypot(ux,uy)||1; ux/=lu; uy/=lu;
+    let vx=p2[0]-p1[0], vy=p2[1]-p1[1]; const lv=Math.hypot(vx,vy)||1; vx/=lv; vy/=lv;
+    const cr=ux*vy-uy*vx, turn=Math.atan2(cr,ux*vx+uy*vy);
+    if(Math.abs(turn)<1e-6||r<=0){ C.push({S:p1,E:p1}); continue; }
+    let rr=r, d=rr*Math.tan(Math.abs(turn)/2);
+    const dmax=Math.min(lu,lv)*0.49;
+    if(d>dmax){ d=dmax; rr=d/Math.tan(Math.abs(turn)/2); }
+    C.push({S:[p1[0]-ux*d,p1[1]-uy*d], E:[p1[0]+vx*d,p1[1]+vy*d], rr, sw:cr>0?1:0});
+  }
+  // primitives around the loop: arc at corner i, then the straight edge i → i+1
+  const P=[]; let made=0;
+  for(let i=0;i<n;i++){
+    const c=C[i], nx=C[(i+1)%n];
+    if(c.rr) P.push({t:'A',to:c.E,rr:c.rr,sw:c.sw});
+    const a=c.E, b=nx.S, L=Math.hypot(b[0]-a[0],b[1]-a[1]);
+    if(edges.includes(i) && L>=gap+0.2){
+      const ux=(b[0]-a[0])/L, uy=(b[1]-a[1])/L, m=L/2;
+      P.push({t:'L',to:[a[0]+ux*(m-gap/2),a[1]+uy*(m-gap/2)]});
+      P.push({t:'G',to:[a[0]+ux*(m+gap/2),a[1]+uy*(m+gap/2)]});
+      P.push({t:'L',to:b}); made++;
+    } else P.push({t:'L',to:b});
+  }
+  const pt=q=>n3(q[0])+' '+n3(q[1]);
+  const emit=x=>x.t==='A'?`A${n3(x.rr)} ${n3(x.rr)} 0 0 ${x.sw} ${pt(x.to)}`:`L${pt(x.to)}`;
+  const g0=P.findIndex(x=>x.t==='G');
+  if(g0<0) return {d:'M'+pt(C[0].S)+P.map(emit).join('')+'Z', made:0};
+  // start just after the first gap, walk once round, and stop at it: no closing segment
+  let d='M'+pt(P[g0].to);
+  for(let j=1;j<P.length;j++){
+    const x=P[(g0+j)%P.length];
+    d+= x.t==='G' ? 'M'+pt(x.to) : emit(x);
+  }
+  return {d, made};
+}
+function ishape(q){                       // I-profile in local coords, y down
+  const x0=0, x1=(q.w-q.wBody)/2, x2=x1+q.wBody, x3=q.w;
+  const y0=0, y1=q.ts, y2=q.h-q.ts, y3=q.h;
+  return [[x0,y0],[x3,y0],[x3,y1],[x2,y1],[x2,y2],[x3,y2],[x3,y3],[x0,y3],[x0,y2],[x1,y2],[x1,y1],[x0,y1]];
+}
+function cross(W,wb,H,th){                // body with a tab on each flank, centred in height
+  const x1=(W-wb)/2, x2=x1+wb, y1=(H-th)/2, y2=y1+th;
+  return [[x1,0],[x2,0],[x2,y1],[W,y1],[W,y2],[x2,y2],[x2,H],[x1,H],[x1,y2],[0,y2],[0,y1],[x1,y1]];
+}
+// part outline in local coords (y down, origin at the bounding-box corner);
+// k grows every edge outward by k/2. null means a plain rectangle.
+function outline(q,k){
+  const W=q.w+k, H=q.h+k, wb=q.wBody+k;
+  if(q.ts)  return ishape({w:W,wBody:wb,h:H,ts:q.ts+k/2});
+  if(q.tab) return cross(W,wb,H,q.tab.H+k);
+  return null;
+}
+function sheetSVG(p,sheet,i,total){
+  const cut=[], eng=[];
+  for(const q of sheet.parts){
+    const r=Math.min(p.partR,q.pw/2,q.ph/2);
+    const ol=outline(q,p.kerf);
+    if(p.mtOn){
+      // the path is the beam centre, so the gap is the bridge plus one kerf
+      const pts=partPts(q,p.kerf).map(([a,b])=>[a+q.px,b+q.py]);
+      cut.push(`<path d="${cutPath(pts,r,bridgeEdges(q),p.mtW+p.kerf).d}"/>`);
+    } else if(ol){
+      const pts=ol.map(([a,b])=>[a+q.px,b+q.py]);
+      cut.push(`<path d="${roundPath(pts,r)}"/>`);
+    } else
+    cut.push(`<rect x="${q.px.toFixed(3)}" y="${q.py.toFixed(3)}" width="${q.pw.toFixed(3)}" height="${q.ph.toFixed(3)}"${r>0?` rx="${r.toFixed(3)}"`:''}/>`);
+    if(p.eng && q.wBody>=p.engMin){
+      const d=digits((q.kind==='S'?'S':'')+q.idx, p.engH);
+      eng.push(`<path transform="translate(${(q.px+(q.pw-d.w)/2).toFixed(3)} ${(q.py+(q.ph-p.engH)/2).toFixed(3)})" d="${d.d}"/>`);
+    }
+  }
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+     width="${sheet.w}mm" height="${sheet.h}mm" viewBox="0 0 ${sheet.w} ${sheet.h}">
+  <title>Axial-flux tooth laminations — ${p.teeth} tooth${p.teeth>1?'s':''}${total>1?`, part ${i+1} of ${total}`:''}</title>
+  <desc>r1 ${p.rIn} r2 ${p.rOut} N ${p.nTeeth} h ${p.h}; ${p.t} mm sheet stacked radially${p.integrated?'; pole shoe integrated':''}${p.ret?`; mid-height retention tabs ${p.tabH} x ${p.tabD} mm per flank`:''}${p.mtOn?`; micro-tabs ${p.mtW} mm, break parts out and dress the stubs`:''}; kerf ${p.kerf} mm compensated; tooth height along Y (rolling direction); run this file ${p.nTeeth/p.teeth} times for a full stator</desc>
+  <g id="cut" fill="none" stroke="${p.cutCol}" stroke-width="0.05">
+${cut.map(s=>'    '+s).join('\n')}
+  </g>
+  <g id="engrave" fill="none" stroke="${p.engCol}" stroke-width="0.05">
+${eng.map(s=>'    '+s).join('\n')}
+  </g>
+</svg>
+`;
+}
+function partsCSV(p,g){
+  const rows=[['kind','index','width_mm','body_width_mm','height_mm','qty_per_tooth','qty_total','r_from_mm','r_to_mm','width_err_mm']];
+  for(const q of g.parts) rows.push([q.kind==='S'?'shoe':'body',q.idx,q.w.toFixed(3),q.wBody.toFixed(3),q.h.toFixed(3),
+    q.qty,q.qty*p.nTeeth,q.rLo.toFixed(2),q.rHi.toFixed(2),q.err.toFixed(3)]);
+  return rows.map(r=>r.join(','))?.join('\n')+'\n';
+}
+
+/* ============================================================
+   retention frame — two identical halves, split at mid-height.
+   Each half carries a through pocket per tooth and, on its mating
+   face, a wider recess for the tab. Recess depths sum to less than
+   the tab height, so the faces stop short by the clamp gap and all
+   of the bolt load goes through the tabs: no play, by construction.
+   Local tooth coords: u radial (along the tooth axis), v tangential.
+   ============================================================ */
+function segDist(px,py,ax,ay,bx,by){
+  const dx=bx-ax, dy=by-ay, L2=dx*dx+dy*dy;
+  const t=L2>0?Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/L2)):0;
+  return Math.hypot(px-ax-t*dx, py-ay-t*dy);
+}
+function polyDist(x,y,pts){
+  let d=Infinity;
+  for(let i=0;i<pts.length;i++){ const a=pts[i], b=pts[(i+1)%pts.length];
+    d=Math.min(d,segDist(x,y,a[0],a[1],b[0],b[1])); }
+  return d;
+}
+function frameGeom(p,g){
+  if(!p.ret || !g.body.length) return null;
+  const b0=g.body[0], bN=g.body[g.body.length-1];
+  const u0=b0.rLo, v0=b0.wBody/2, u1=bN.rHi, v1=bN.wBody/2;
+  const m=(v1-v0)/Math.max(1e-9,u1-u0);
+  let e=0;                                    // lift the line over every staircase corner
+  for(const q of g.body) for(const u of [q.rLo,q.rHi]) e=Math.max(e,q.wBody/2-(v0+m*(u-u0)));
+  const clr=p.fClr;
+  const hwT=u=>v0+m*(u-u0)+e, hwP=u=>hwT(u)+clr, hwR=u=>hwT(u)+p.tabD+clr;
+  const uIn=u0-clr, uOut=u1+clr;
+  // frame thickness is the assembled stack, clamp gap included, so it matches the winder's
+  const halfT=(p.frameT-p.fGap)/2, recD=(p.tabH-p.fGap)/2, floorT=halfT-recD;
+  const rf1=Math.max(0,p.rIn-p.ringIn), rf2=p.rOut+p.ringOut;
+  const nL=Math.max(0,Math.min(p.coilB+0.5, uIn-rf1-1.2));     // lead notch, radially inward
+  const ribH=clr+0.25, ribW=1.6, ribF=0.5;
+  const nw=Math.max(0,Math.min(p.notchW/2, hwP(uIn)-0.4));
+  function loop(hw){
+    const pts=[[uIn,-hw(uIn)],[uOut,-hw(uOut)]];
+    if(p.rib){ const vr=hw(uOut)*0.5;
+      for(const c of [-vr,vr]) pts.push([uOut,c-ribW/2],[uOut-ribH,c-ribF/2],[uOut-ribH,c+ribF/2],[uOut,c+ribW/2]); }
+    pts.push([uOut,hw(uOut)],[uIn,hw(uIn)]);
+    if(nw>0 && nL>0) pts.push([uIn,nw],[uIn-nL,nw],[uIn-nL,-nw],[uIn,-nw]);
+    return pts;
+  }
+  const N=p.nTeeth, th=i=>Math.PI/2+i*TAU/N;
+  const rot=(pts,a)=>pts.map(([u,v])=>[u*Math.cos(a)-v*Math.sin(a), u*Math.sin(a)+v*Math.cos(a)]);
+  const P=loop(hwP), Rc=loop(hwR), T=[[u0,-hwT(u0)],[u1,-hwT(u1)],[u1,hwT(u1)],[u0,hwT(u0)]];
+  const pockets=[], recesses=[], teeth=[];
+  for(let i=0;i<N;i++){ pockets.push(rot(P,th(i))); recesses.push(rot(Rc,th(i))); teeth.push(rot(T,th(i))); }
+
+  // bolts at slot centres; the pattern is symmetric about bolt 1, which is the flip axis
+  const rbI=p.rIn-p.ringIn/2, rbO=p.rOut+p.ringOut/2, br=p.boltD/2;
+  const inner=p.boltD>0 && rbI-br>rf1+0.4;
+  const bolts=[];
+  if(p.boltD>0) for(let i=0;i<N;i+=p.boltEvery){
+    const a=th(i)+Math.PI/N;
+    for(const [r,ring] of (inner?[[rbI,'in'],[rbO,'out']]:[[rbO,'out']]))
+      bolts.push({x:r*Math.cos(a),y:r*Math.sin(a),r:br,ring});
+  }
+  // outer rim with a V index notch on the flip axis
+  const phi0=Math.PI/2+Math.PI/N, dd=Math.min(1.5,p.ringOut*0.3), del=dd/rf2, M=360, rim=[];
+  for(let k=0;k<=M;k++){ const a=phi0+del+(TAU-2*del)*k/M; rim.push([rf2*Math.cos(a),rf2*Math.sin(a)]); }
+  rim.push([(rf2-dd)*Math.cos(phi0),(rf2-dd)*Math.sin(phi0)]);
+
+  // checks
+  let boltWall=Infinity, headGap=Infinity;
+  const headR=0.82*p.boltD;                                   // M3 cap head / nut ≈ 0.82·Ø-clearance
+  for(const b of bolts){
+    for(const poly of [...pockets,...recesses]) boltWall=Math.min(boltWall,polyDist(b.x,b.y,poly)-b.r);
+    boltWall=Math.min(boltWall, polyDist(b.x,b.y,rim)-b.r);
+    if(rf1>0) boltWall=Math.min(boltWall, Math.hypot(b.x,b.y)-rf1-b.r);
+    for(const tp of teeth) headGap=Math.min(headGap, polyDist(b.x,b.y,tp)-headR);
+  }
+  const sn=Math.sin(Math.PI/N), cs=Math.cos(Math.PI/N);
+  const web=2*Math.min(uIn*sn-hwR(uIn)*cs, uOut*sn-hwR(uOut)*cs);   // plastic between neighbouring recesses
+  const P0=p.Bg*p.Bg/(2*4e-7*Math.PI);                              // magnetic pressure, Pa
+  const fTooth=P0*g.ideal*1e-6, fAll=fTooth*N;
+  const bearing=2*p.tabD*(u1-u0);
+  return {u0,u1,uIn,uOut,hwT,hwP,hwR,halfT,recD,floorT,rf1,rf2,nL,nw,rbI,rbO,inner,
+          pockets,recesses,teeth,bolts,rim,phi0,dd,boltWall,headGap,headR,web,
+          fTooth,fAll,perBolt:bolts.length?fAll/bolts.length:Infinity,tabStress:bearing>0?fTooth/bearing:0,
+          zc:p.h/2, coilSpace:(p.bodyH-p.frameT)/2, sym:N%p.boltEvery===0};
+}
+
+const fmt=v=>(Math.abs(v)<5e-4?0:v).toFixed(3);
+function frameSVG(p,F){
+  const S=F.rf2+4, pl=pts=>`<path d="M${pts.map(([x,y])=>`${fmt(x)} ${fmt(-y)}`).join('L')}Z"/>`;
+  const circ=(x,y,r)=>`<circle cx="${fmt(x)}" cy="${fmt(-y)}" r="${fmt(r)}"/>`;
+  const ax=[Math.cos(F.phi0)*S,Math.sin(F.phi0)*S];
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+     width="${2*S}mm" height="${2*S}mm" viewBox="${-S} ${-S} ${2*S} ${2*S}">
+  <title>Retention frame — one half, mating face up</title>
+  <desc>Print two. Each half ${F.halfT.toFixed(2)} mm thick. Black: through (rim, pockets, lead notches, bolt holes). Blue: tab recess, ${F.recD.toFixed(2)} mm deep from the mating face. Flip the second half about the dashed axis (the index notch) to assemble. Stator r1 ${p.rIn} r2 ${p.rOut} N ${p.nTeeth} h ${p.h}; tab ${p.tabH} x ${p.tabD} mm; clamp gap ${p.fGap} mm.</desc>
+  <g id="through" fill="none" stroke="#000000" stroke-width="0.1">
+    ${pl(F.rim)}
+    ${F.rf1>0?circ(0,0,F.rf1):''}
+${F.pockets.map(q=>'    '+pl(q)).join('\n')}
+${F.bolts.map(b=>'    '+circ(b.x,b.y,b.r)).join('\n')}
+  </g>
+  <g id="recess_${F.recD.toFixed(2).replace('.','_')}mm" fill="none" stroke="#0050ff" stroke-width="0.1">
+${F.recesses.map(q=>'    '+pl(q)).join('\n')}
+  </g>
+  <g id="reference" fill="none" stroke="#999999" stroke-width="0.1" stroke-dasharray="2 1.5">
+    <path d="M${fmt(-ax[0])} ${fmt(ax[1])}L${fmt(ax[0])} ${fmt(-ax[1])}"/>
+  </g>
+</svg>
+`;
+}
+function frameDXF(p,F){
+  const L=[], w=(c,v)=>L.push(String(c),String(v));
+  const rl=`RECESS_${F.recD.toFixed(2).replace('.','_')}MM_DEEP`;
+  const layers=[['OUTLINE',7],['POCKET_THROUGH',1],['BOLT_THROUGH',3],[rl,5],['FLIP_AXIS',8]];
+  w(0,'SECTION');w(2,'HEADER');w(9,'$ACADVER');w(1,'AC1009');w(9,'$INSUNITS');w(70,4);w(0,'ENDSEC');
+  w(0,'SECTION');w(2,'TABLES');w(0,'TABLE');w(2,'LAYER');w(70,layers.length);
+  for(const [n,c] of layers){w(0,'LAYER');w(2,n);w(70,0);w(62,c);w(6,'CONTINUOUS');}
+  w(0,'ENDTAB');w(0,'ENDSEC');
+  w(0,'SECTION');w(2,'ENTITIES');
+  const poly=(pts,l)=>{ w(0,'POLYLINE');w(8,l);w(66,1);w(10,0);w(20,0);w(30,0);w(70,1);
+    for(const [x,y] of pts){w(0,'VERTEX');w(8,l);w(10,fmt(x));w(20,fmt(y));w(30,0);}
+    w(0,'SEQEND');w(8,l); };
+  const circ=(x,y,r,l)=>{w(0,'CIRCLE');w(8,l);w(10,fmt(x));w(20,fmt(y));w(30,0);w(40,fmt(r));};
+  poly(F.rim,'OUTLINE'); if(F.rf1>0) circ(0,0,F.rf1,'OUTLINE');
+  for(const q of F.pockets) poly(q,'POCKET_THROUGH');
+  for(const b of F.bolts) circ(b.x,b.y,b.r,'BOLT_THROUGH');
+  for(const q of F.recesses) poly(q,rl);
+  const S=F.rf2+4, c=Math.cos(F.phi0)*S, s=Math.sin(F.phi0)*S;
+  w(0,'LINE');w(8,'FLIP_AXIS');w(10,fmt(-c));w(20,fmt(-s));w(30,0);w(11,fmt(c));w(21,fmt(s));w(31,0);
+  w(0,'ENDSEC');w(0,'EOF');
+  return L.join('\n')+'\n';
+}
+function frameSCAD(p,F){
+  const pts=a=>'['+a.map(([x,y])=>`[${fmt(x)},${fmt(y)}]`).join(',')+']';
+  return `// Retention frame — one half. Generated by Lamination Cutter.
+// Stator r1 ${p.rIn}  r2 ${p.rOut}  N ${p.nTeeth}  h ${p.h} mm
+// Tab ${p.tabH} x ${p.tabD} mm per flank, clamp gap ${p.fGap} mm, pocket clearance ${p.fClr} mm.
+//
+// Print TWO of these, mating face (the recessed side) up — no supports needed.
+// Turn one over about the index notch and the pockets, bolts and notches line up.
+// Open in OpenSCAD, render (F6), export STL.
+
+H  = ${F.halfT.toFixed(3)};   // half thickness
+RD = ${F.recD.toFixed(3)};   // tab recess depth, from the mating face
+
+rim = ${pts(F.rim)};
+pockets = [
+${F.pockets.map(q=>'  '+pts(q)).join(',\n')}
+];
+recesses = [
+${F.recesses.map(q=>'  '+pts(q)).join(',\n')}
+];
+bolts = ${'['+F.bolts.map(b=>`[${fmt(b.x)},${fmt(b.y)}]`).join(',')+']'};
+
+difference(){
+  linear_extrude(height=H) difference(){
+    polygon(rim);
+    ${F.rf1>0?`circle(r=${fmt(F.rf1)}, $fn=240);`:'// no bore'}
+  }
+  translate([0,0,-1]) linear_extrude(height=H+2){
+    for(q=pockets) polygon(q);
+    for(b=bolts) translate(b) circle(d=${fmt(p.boltD)}, $fn=40);
+  }
+  translate([0,0,H-RD]) linear_extrude(height=RD+1)
+    for(q=recesses) polygon(q);
+}
+`;
+}
+
+/* ============================================================
+   main
+   ============================================================ */
+let STATE=null;
+function run(){
+  const p=readParams();
+  $('rowRatio').hidden=p.mode!=='ratio';
+  $('rowAngle').hidden=p.mode!=='angle';
+  $('rowWIn').hidden=$('rowWOut').hidden=p.mode!=='widths';
+  $('rowGroups').hidden=p.groupMode==='exact';
+  $('rowMt').hidden=!p.mtOn;
+  $('shoeBox').hidden=!p.shoe; $('shoeOff').hidden=p.shoe;
+  $('shoeIntNote').hidden=!p.integrated; $('shoeSepNote').hidden=p.integrated||!p.shoe;
+  const retUI=$('retOn').checked;
+  $('retBox').hidden=!retUI; $('retOff').hidden=retUI;
+
+  const g=build(p), nst=nest(p,g), F=frameGeom(p,g);
+  const files=nst.sheets.map((s,i)=>({name:`laminations_sheet${String(i+1).padStart(2,'0')}.svg`,
+                                      text:sheetSVG(p,s,i,nst.sheets.length)}));
+  const frameFiles=F?[{name:'frame_half.svg',text:frameSVG(p,F)},
+                      {name:'frame_half.dxf',text:frameDXF(p,F)},
+                      {name:'frame_half.scad',text:frameSCAD(p,F)}]:[];
+  STATE={p,g,nst,files,F,frameFiles};
+  $('btnFrame').hidden=!F;
+  $('tabFrame').hidden=!retUI;
+  syncTabs();
+  if(!retUI && VIEW==='frame') setView('3d');
+  $('frameOut').innerHTML = !F ? '' :
+    `each half <b>${F.halfT.toFixed(2)}</b> mm · recess ${F.recD.toFixed(2)} deep · floor ${F.floorT.toFixed(2)}<br>`+
+    `frame Ø${(2*F.rf2).toFixed(1)}${F.rf1>0?` / bore Ø${(2*F.rf1).toFixed(1)}`:''} · ${F.bolts.length} bolts<br>`+
+    `coil space <b>${F.coilSpace.toFixed(2)}</b> mm per half`;
+
+  $('geoOut').innerHTML=
+    `${g.n} sheets of ${p.t} mm → radial build <b>${g.build.toFixed(2)}</b> of ${(p.rOut-p.rIn).toFixed(2)} mm<br>`+
+    `width ${p.w1.toFixed(2)} at r₁ → ${p.w2.toFixed(2)} mm at r₂`+
+    (p.aBody!=null?` · span ${(2*p.aBody*R2D).toFixed(2)}°`:'')+
+    `<br>adjacent sheets differ by <b>${(Math.abs(p.w2-p.w1)/Math.max(1,g.n-1)).toFixed(3)} mm</b>`+
+    (p.shoe?`<br>pole face ${shoeWidthAt(p,p.rOut).toFixed(2)} mm at r₂`+
+      (p.integrated?` · I-shape, web ${p.w2.toFixed(2)} mm`:` · body height ${p.bodyH.toFixed(2)} mm`):'');
+
+  const runs=Math.ceil(p.nTeeth/p.teeth);
+  const massAll=g.sheetArea*p.t*p.nTeeth/1e9*DENS*1000;
+  const cutFile=g.cutLen*p.teeth/1000;
+  $('readouts').innerHTML=[
+    ['Sheets / tooth',g.perTooth,''],
+    ['Part types',g.parts.length,''],
+    ['Of each type',g.parts.length?Math.round(g.perTooth/g.parts.length):0,'per tooth'],
+    ['Radial build',g.build.toFixed(2),'mm'],
+    ['Iron fill',(g.fill*100).toFixed(1),'%'],
+    ['Net fill',(g.fill*p.sf*100).toFixed(1),'%'],
+    ['Flank error',g.maxErr.toFixed(3),'mm'],
+    ['Files',nst.sheets.length,''],
+    ['Runs needed',runs,`× ${p.teeth}`],
+    ['Cut / run',cutFile.toFixed(1),'m'],
+    ['Time / run',(cutFile/p.speed).toFixed(1),'min'],
+    ['Steel, stator',massAll.toFixed(0),'g'],
+    ...(F?[['Coil space',F.coilSpace.toFixed(2),'mm / half'],
+           ['Frame Ø',(2*F.rf2).toFixed(0),'mm'],
+           ['Pull / tooth',F.fTooth.toFixed(0),'N']]:[]),
+  ].map(([k,v,u])=>`<div class="ro"><dt>${k}</dt><dd>${v}<s>${u}</s></dd></div>`).join('');
+
+  const ns=[];
+  const add=(k,t,txt)=>ns.push(`<div class="note n-${k}"><span class="k">${t}</span><span class="t">${esc(txt)}</span></div>`);
+  if(p.rIn>=p.rOut) add('bad','geometry','Inner radius must be smaller than the outer radius.');
+  if(p.mode!=='widths' && 2*p.aBody>=p.pitch) add('bad','geometry',`A ${(2*p.aBody*R2D).toFixed(1)}° tooth does not fit a ${(360/p.nTeeth).toFixed(1)}° slot pitch.`);
+  if(p.w2>=TAU*p.rOut/p.nTeeth) add('bad','geometry',`Tooth is ${p.w2.toFixed(2)} mm wide at r₂ but the slot pitch there is only ${(TAU*p.rOut/p.nTeeth).toFixed(2)} mm.`);
+  if(p.fitMode==='fixed' && nst.sheets.length>1){
+    const last=nst.sheets[nst.sheets.length-1].parts.length, full=nst.sheets[0].parts.length;
+    if(last<=Math.max(2,full*0.1)) add('warn','sheet',`The last sheet holds only ${last} part${last>1?'s':''}. A slightly smaller edge margin or part spacing, or a larger sheet, would save a whole file per run.`);
+  }
+  if(nst.oversize) add('bad','sheet','A part is larger than the usable sheet. Increase the sheet size or reduce the margin.');
+
+  const step=Math.abs(p.w2-p.w1)/Math.max(1,g.n-1);
+  if(p.groupMode==='exact' && step<p.kerf)
+    add('warn','grouping',`Exact widths means ${g.n} part types differing by ${step.toFixed(3)} mm — finer than the ${p.kerf} mm kerf, so the distinction is not real. Group them into classes instead.`);
+  else if(p.groupMode!=='exact')
+    add('ok','grouping',`${g.parts.length} part types, ${Math.round(g.perTooth*p.teeth/g.parts.length)} of each. Worst flank error ${g.maxErr.toFixed(3)} mm per side.`);
+
+  if(g.maxErr>p.t*2) add('warn','flank',`Flank error ${g.maxErr.toFixed(3)} mm is over two sheet thicknesses. Add width classes if the slot is tight.`);
+  if(g.sag>0.1) add('warn','faces',`Flat inner and outer faces sit ${g.sag.toFixed(2)} mm inside the true arc at r₂ — that is the trapezoidal approximation, and it is why iron fill stops at ${(g.fill*100).toFixed(1)}%.`);
+  if(g.build < (p.rOut-p.rIn)-p.t) add('warn','build',`Stack is ${((p.rOut-p.rIn)-g.build).toFixed(2)} mm short of the full radial length — the remainder is less than one sheet.`);
+  if(p.integrated) add('warn','shoes',`Integrated shoes close the slot, so the coil cannot be needle-wound onto the tooth. Wind it by hand, or wind a bobbin coil and build the stack up inside it.`);
+  else if(p.shoe) add('warn','shoes',`Shoe plates (prefix S) cap each end and are cut separately; the body laminations are ${p.bodyH.toFixed(1)} mm tall to make room. Wind every tooth first — once the shoes are on, no coil will pass.`);
+  add('ok','runs',`One file holds ${p.teeth} tooth${p.teeth>1?'s':''}. Run it ${runs} time${runs>1?'s':''} on fresh material for the full ${p.nTeeth}-tooth stator.`);
+  if(p.mtOn){
+    const where = g.parts.some(q=>q.tab) ? 'on the tip of each retention tab, where the stub sits in the recess clearance'
+                : p.integrated ? 'on two opposite flange tips — the slot-opening sides'
+                : 'mid-way along both end faces, where the stubs line up across the stack and one pass with a file dresses them all';
+    const miss=g.parts.filter(q=>cutPath(partPts(q,p.kerf),Math.min(p.partR,(q.w+p.kerf)/2,(q.h+p.kerf)/2),bridgeEdges(q),p.mtW+p.kerf).made<2);
+    add(miss.length?'warn':'ok','micro-tabs', miss.length
+      ? `${miss.length} part type${miss.length>1?'s are':' is'} too small for a ${p.mtW} mm bridge on both chosen edges and will cut free. Narrow the bridge or reduce the corner radius.`
+      : `Two ${p.mtW} mm bridges per part, ${where}. Never on a flank — that is the coil face and the frame-pocket fit.`+
+        (p.shoe&&!p.integrated?' Shoe plates are held at their two short ends.':''));
+  }
+  if(p.kerf<=0) add('warn','kerf','Kerf is zero, so parts cut undersize by the true beam width. Measure it on a test piece.');
+  if(p.retBlocked) add('bad','frame','The frame halves drop on from each end of the tooth, and an integrated pole shoe is wider than the pocket they have to pass. Use separate shoe plates, bonded on after winding, or turn the frame off.');
+  if(F){
+    if(F.recD<=0.05) add('bad','frame',`The clamp gap leaves no recess for the tab. Make the gap smaller than the ${p.tabH} mm tab.`);
+    if(F.floorT<0.8) add('bad','frame',`Only ${F.floorT.toFixed(2)} mm of plastic under each recess. That floor carries the whole magnetic pull — make the frame thicker or the tab shorter.`);
+    else if(F.floorT<1.2) add('warn','frame',`Recess floor is ${F.floorT.toFixed(2)} mm — three or four layers at 0.3 mm. Thin for a part that carries the rotor pull.`);
+    if(F.coilSpace<2) add('bad','coil',`Only ${F.coilSpace.toFixed(2)} mm of tooth left above the frame on each side — no room for a coil.`);
+    if(F.web<1.2) add('bad','frame',`Neighbouring recesses leave only ${Math.max(0,F.web).toFixed(2)} mm of plastic between them. Shallower tabs or fewer teeth.`);
+    if(p.boltD>0 && F.boltWall<1) add('warn','bolts',`A bolt hole comes within ${Math.max(0,F.boltWall).toFixed(2)} mm of a pocket or the edge. Widen the ring or use a smaller bolt.`);
+    if(p.boltD>0 && F.headGap<p.coilB) add('warn','bolts',`Bolt heads sit ${Math.max(0,F.headGap).toFixed(1)} mm from the tooth, inside the ${p.coilB} mm coil allowance — the end turns will land on them. Widen the rings.`);
+    if(!F.sym) add('bad','bolts',`${p.nTeeth} teeth is not a multiple of a bolt every ${p.boltEvery} slots, so the pattern is not symmetric and the flipped half will not line up.`);
+    if(F.nL<p.coilB) add('warn','notch',`The lead notch reaches only ${F.nL.toFixed(1)} mm in from the tooth — less than the coil build, so the crossover lead has to bend round the last layer. Widen the inner ring.`);
+    if(!F.inner && p.boltD>0) add('warn','bolts','The inner ring is too narrow for bolts, so only the outer ring is bolted. The inner edge is held by the teeth alone.');
+    add('ok','frame',`Two identical halves, ${F.halfT.toFixed(2)} mm each, mating face up on the bed. Flip one about the index notch: pockets, bolts and notches all land on themselves. Faces stop ${p.fGap} mm apart, so bolt load goes through the tabs.`);
+    add('ok','load',`At ${p.Bg} T the rotor pulls about ${F.fTooth.toFixed(0)} N on each tooth — ${(F.fAll/1000).toFixed(2)} kN one-sided while the first rotor goes on, ${F.perBolt.toFixed(0)} N per bolt. The tabs carry it at ${F.tabStress.toFixed(1)} MPa.`);
+    add('ok','winding',`Wind each half of the coil on its own frame face, ${F.coilSpace.toFixed(2)} mm of tooth. In the winder, tick the split coil option with a ${p.frameT} mm frame. The lead notch at the inner end of each pocket takes the crossover between halves.`);
+  }
+  $('notes').innerHTML=ns.join('');
+
+  const sel=$('fileSel'); const keep=sel.value;
+  sel.innerHTML=files.map((f,i)=>`<option value="${i}">${f.name}</option>`).join('');
+  sel.value=(keep&&+keep<files.length)?keep:0;
+  $('btnAll').hidden=files.length<2;
+  $('meta').textContent=`${files.length} sheet${files.length>1?'s':''} · ${p.shW}×${p.shH} mm`;
+
+  $('ptable').innerHTML=
+    `<thead><tr><th>Part</th><th>Width</th><th>Height</th><th>r from</th><th>r to</th><th>Per tooth</th><th>Total</th><th>± err</th></tr></thead><tbody>`+
+    g.parts.map(q=>`<tr><td>${q.kind==='S'?'S':''}${q.idx}</td><td>${q.w.toFixed(2)}</td><td>${q.h.toFixed(2)}</td>`+
+      `<td>${q.rLo.toFixed(1)}</td><td>${q.rHi.toFixed(1)}</td><td>${q.qty}</td><td>${q.qty*p.nTeeth}</td><td>${q.err.toFixed(3)}</td></tr>`).join('')+
+    `</tbody>`;
+  draw();
+}
+
+/* ============================================================
+   views
+   ============================================================ */
+const cv=$('cv'), ctx=cv.getContext('2d');
+let VIEW='3d', dpr=1, DIMS=true, FRAME3D=true;
+const cam={az:-0.62,el:0.95,zoom:1,panx:0,pany:0};
+function fit(){
+  const r=cv.getBoundingClientRect();
+  dpr=Math.min(2,window.devicePixelRatio||1);
+  cv.width=Math.max(1,Math.round(r.width*dpr));
+  cv.height=Math.max(1,Math.round(r.height*dpr));
+  draw();
+}
+new ResizeObserver(fit).observe(cv);
+function lab(x,y,t,c,al){ctx.fillStyle=c||'#8d9aa4';ctx.font='500 11px "IBM Plex Mono",ui-monospace,monospace';
+  ctx.textAlign=al||'left';ctx.fillText(t,x,y);ctx.textAlign='left';}
+function legend(w,h,items){
+  let lx=14; ctx.font='500 11px "IBM Plex Mono",ui-monospace,monospace';
+  for(const [tt,cc] of items){ctx.strokeStyle=cc;ctx.lineWidth=2.5;ctx.beginPath();
+    ctx.moveTo(lx,h-18);ctx.lineTo(lx+16,h-18);ctx.stroke();
+    ctx.fillStyle='#8d9aa4';ctx.fillText(tt,lx+22,h-14);lx+=28+ctx.measureText(tt).width;}
+}
+function draw(){
+  if(!STATE) return;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--view').trim()||'#13161a';
+  ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.save(); ctx.scale(dpr,dpr);
+  const w=cv.width/dpr, h=cv.height/dpr;
+  if(VIEW==='3d') draw3D(w,h);
+  else if(VIEW==='stack') drawStack(w,h);
+  else if(VIEW==='parts') drawParts(w,h);
+  else if(VIEW==='frame') drawFrame(w,h);
+  else drawSheet(w,h);
+  ctx.restore();
+}
+
+/* ---- 3D: the stack as solid sheets, painter's algorithm ---- */
+function proj(x,y,z,o){
+  const ca=Math.cos(cam.az), sa=Math.sin(cam.az);
+  const X=x*ca+y*sa, Y=-x*sa+y*ca;
+  const ce=Math.cos(cam.el), se=Math.sin(cam.el);
+  return [o.cx+X*o.s, o.cy-(Y*ce-z*se)*o.s, Y*se+z*ce];
+}
+function extrude(prof,y0,y1,out,tint){
+  const n=prof.length;
+  for(let i=0;i<n;i++){
+    const a=prof[i], b=prof[(i+1)%n];
+    out.push({v:[[a[0],y0,a[1]],[b[0],y0,b[1]],[b[0],y1,b[1]],[a[0],y1,a[1]]],tint});
+  }
+  out.push({v:prof.map(a=>[a[0],y0,a[1]]),tint});
+  out.push({v:prof.map(a=>[a[0],y1,a[1]]),tint});
+}
+function toothFaces(p,g){
+  const out=[];
+  const perSheet = g.n<=240;                        // one slab per sheet when it is cheap
+  for(const q of g.body){
+    const hw=q.w/2, hb=q.wBody/2, ts=q.ts, z0=(p.h-q.h)/2;   // body sits between the shoe plates
+    const a=q.tab?(q.h-q.tab.H)/2:0, b=q.tab?a+q.tab.H:0;
+    const prof = (ts
+      ? [[-hw,0],[hw,0],[hw,ts],[hb,ts],[hb,q.h-ts],[hw,q.h-ts],
+         [hw,q.h],[-hw,q.h],[-hw,q.h-ts],[-hb,q.h-ts],[-hb,ts],[-hw,ts]]
+      : q.tab
+      ? [[-hb,0],[hb,0],[hb,a],[hw,a],[hw,b],[hb,b],[hb,q.h],[-hb,q.h],[-hb,b],[-hw,b],[-hw,a],[-hb,a]]
+      : [[-hw,0],[hw,0],[hw,q.h],[-hw,q.h]]).map(([x,z])=>[x,z+z0]);
+    if(perSheet){
+      const k=Math.max(1,Math.round((q.rHi-q.rLo)/p.t));
+      for(let j=0;j<k;j++){
+        const y0=q.rLo+(q.rHi-q.rLo)*j/k, y1=q.rLo+(q.rHi-q.rLo)*(j+1)/k;
+        extrude(prof,y0+p.t*0.06,y1-p.t*0.06,out,q.kind);
+      }
+    } else extrude(prof,q.rLo,q.rHi,out,q.kind);
+  }
+  if(p.shoe && !p.integrated) for(const q of g.shoe){
+    const hw=q.w/2;
+    for(const [z0,z1] of [[0,p.shoeT],[p.h-p.shoeT,p.h]])
+      extrude([[-hw,z0],[hw,z0],[hw,z1],[-hw,z1]],q.rLo,q.rHi,out,'S');
+  }
+  return out;
+}
+// a convex block extruded along z; poly in (u radial, v tangential) → world [v,u,z]
+function prismZ(poly,z0,z1,out,tint){
+  const n=poly.length, V=([u,v],z)=>[v,u,z];
+  for(let i=0;i<n;i++){ const a=poly[i], b=poly[(i+1)%n];
+    out.push({v:[V(a,z0),V(b,z0),V(b,z1),V(a,z1)],tint}); }
+  out.push({v:poly.map(q=>V(q,z0)),tint});
+  out.push({v:poly.map(q=>V(q,z1)),tint});
+}
+// one tooth's share of each frame half, exploded clear of the tooth along z
+function frameFaces(p,F){
+  const N=p.nTeeth, sn=Math.sin(Math.PI/N), cs=Math.cos(Math.PI/N), tn=sn/cs;
+  const C=(r,s)=>[r*cs,s*r*sn];
+  const {uIn,uOut,rf1,rf2,hwP,hwR,halfT,recD,zc}=F, gap=p.fGap;
+  const blocks=hw=>[
+    [C(rf1,-1),[uIn,-uIn*tn],[uIn,uIn*tn],C(rf1,1)],
+    [[uOut,-uOut*tn],C(rf2,-1),C(rf2,1),[uOut,uOut*tn]],
+    [[uIn,-uIn*tn],[uOut,-uOut*tn],[uOut,-hw(uOut)],[uIn,-hw(uIn)]],
+    [[uIn,hw(uIn)],[uOut,hw(uOut)],[uOut,uOut*tn],[uIn,uIn*tn]],
+  ];
+  const E=zc+Math.max(4,0.3*p.h);
+  const lower=[], upper=[];
+  const lay=(hw,z0,z1,out)=>{ for(const b of blocks(hw)) prismZ(b,z0,z1,out,'F'); };
+  lay(hwP, zc-gap/2-halfT-E, zc-gap/2-recD-E, lower);
+  lay(hwR, zc-gap/2-recD-E,  zc-gap/2-E,      lower);
+  lay(hwR, zc+gap/2+E,       zc+gap/2+recD+E, upper);
+  lay(hwP, zc+gap/2+recD+E,  zc+gap/2+halfT+E, upper);
+  return {lower,upper,E};
+}
+// a dimension between two 3-D points. The offset is applied in SCREEN space,
+// pushed away from the model centre, so no camera angle puts it over the solid.
+function dim3(o,a,b,txt,col,off){
+  const P=q=>proj(q[0],q[1],q[2],o);
+  const A=P(a), B=P(b), C=P([0,0,0]);
+  let dx=B[0]-A[0], dy=B[1]-A[1]; const ln=Math.hypot(dx,dy)||1; dx/=ln; dy/=ln;
+  let nx=-dy, ny=dx;
+  const mx=(A[0]+B[0])/2, my=(A[1]+B[1])/2;
+  if((mx-C[0])*nx+(my-C[1])*ny < 0){ nx=-nx; ny=-ny; }
+  const d=off||34;
+  const A2=[A[0]+nx*d,A[1]+ny*d], B2=[B[0]+nx*d,B[1]+ny*d];
+  ctx.strokeStyle=col; ctx.lineWidth=1;
+  ctx.setLineDash([1,3]);
+  ctx.beginPath();
+  ctx.moveTo(A[0],A[1]); ctx.lineTo(A2[0]+nx*4,A2[1]+ny*4);
+  ctx.moveTo(B[0],B[1]); ctx.lineTo(B2[0]+nx*4,B2[1]+ny*4);
+  ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(A2[0],A2[1]); ctx.lineTo(B2[0],B2[1]); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(A2[0]-nx*3.5,A2[1]-ny*3.5); ctx.lineTo(A2[0]+nx*3.5,A2[1]+ny*3.5);
+  ctx.moveTo(B2[0]-nx*3.5,B2[1]-ny*3.5); ctx.lineTo(B2[0]+nx*3.5,B2[1]+ny*3.5);
+  ctx.stroke();
+  // a dark backing keeps the label readable where it crosses the frame
+  ctx.font='500 11px "IBM Plex Mono",ui-monospace,monospace';
+  const tw=ctx.measureText(txt).width, lx=mx+nx*(d+15), ly=my+ny*(d+15)+3;
+  ctx.fillStyle='rgba(15,18,21,.78)'; ctx.fillRect(lx-tw/2-3, ly-11, tw+6, 15);
+  lab(lx, ly, txt, col, 'center');
+}
+function draw3D(w,h){
+  const {p,g}=STATE;
+  const {F}=STATE;
+  const R=(p.rIn+p.rOut)/2, Zc=p.h/2;
+  const wMax=Math.max(p.w2, p.shoe?shoeWidthAt(p,p.rOut):0, g.body.reduce((a,q)=>Math.max(a,q.w),0));
+  const fr = F && FRAME3D ? frameFaces(p,F) : null;
+  // fit by the bounding sphere, so no orientation can clip the model
+  const span = fr
+    ? 2*Math.hypot(F.rf2*Math.sin(Math.PI/p.nTeeth), Math.max(R-F.rf1*Math.cos(Math.PI/p.nTeeth),F.rf2-R),
+                   fr.E+p.fGap/2+F.halfT)*1.04
+    : 2*Math.hypot(wMax/2,(p.rOut-p.rIn)/2,p.h/2)*1.08;
+  const o={cx:w/2+cam.panx, cy:h/2+16+cam.pany, s:Math.min(w-30,h-56)/span*cam.zoom};
+  const L=[-0.42,-0.50,0.76];
+  const shade=faces=>faces.map(f=>{
+    const P=f.v.map(([x,y,z])=>proj(x,y-R,z-Zc,o));
+    let nx=0,ny=0,nz=0;                                  // Newell normal in world space
+    for(let i=0;i<f.v.length;i++){
+      const a=f.v[i], b=f.v[(i+1)%f.v.length];
+      nx+=(a[1]-b[1])*(a[2]+b[2]); ny+=(a[2]-b[2])*(a[0]+b[0]); nz+=(a[0]-b[0])*(a[1]+b[1]);
+    }
+    const m=Math.hypot(nx,ny,nz)||1;
+    const lit=Math.abs((nx*L[0]+ny*L[1]+nz*L[2])/m);
+    return {P, d:P.reduce((a,q)=>a+q[2],0)/P.length, lit, tint:f.tint};
+  }).sort((a,b)=>b.d-a.d);
+  // the exploded halves never overlap the tooth in z, so whole groups sort cleanly far to near
+  const groups=[{f:toothFaces(p,g),z:Zc}];
+  if(fr){ groups.push({f:fr.lower,z:Zc-fr.E},{f:fr.upper,z:Zc+fr.E}); }
+  groups.forEach(G=>{ G.d=proj(0,0,G.z-Zc,o)[2]; });
+  groups.sort((a,b)=>b.d-a.d);
+  const drawn=groups.flatMap(G=>shade(G.f));
+  for(const f of drawn){
+    const sh=0.30+0.70*f.lit;
+    const base = f.tint==='S' ? [215,131,79] : f.tint==='F' ? [178,172,158] : [111,163,196];
+    ctx.fillStyle=`rgb(${Math.round(base[0]*sh)},${Math.round(base[1]*sh)},${Math.round(base[2]*sh)})`;
+    ctx.strokeStyle=`rgba(20,26,31,.55)`; ctx.lineWidth=.5;
+    ctx.beginPath();
+    f.P.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+  // main dimensions
+  if(DIMS){
+    const M=(x,y,z)=>[x,y-R,z-Zc];
+    const C='#9aa6ae', CS='#d7834f';
+    const xo=wMax/2;                       // widest silhouette, shoes included
+    dim3(o, M(-p.w1/2,p.rIn,0), M(p.w1/2,p.rIn,0), `w₁ ${p.w1.toFixed(2)}`, C, 30);
+    dim3(o, M(-p.w2/2,p.rOut,0), M(p.w2/2,p.rOut,0), `w₂ ${p.w2.toFixed(2)}`, C, 30);
+    dim3(o, M(xo,p.rIn,0), M(xo,p.rOut,0), `L ${(p.rOut-p.rIn).toFixed(2)}`, C, 34);
+    dim3(o, M(xo,p.rOut,0), M(xo,p.rOut,p.h), `h ${p.h.toFixed(2)}`, C, 34);
+    if(p.ret) dim3(o, M(-xo,p.rOut,Zc-p.tabH/2), M(-xo,p.rOut,Zc+p.tabH/2), `tab ${p.tabH} × ${p.tabD}`, C, 34);
+    if(p.shoe){
+      const wS=shoeWidthAt(p,p.rOut), ts=p.shoeT;
+      dim3(o, M(-wS/2,p.rOut,p.h), M(wS/2,p.rOut,p.h), `face ${wS.toFixed(2)}`, CS, 62);
+      dim3(o, M(-xo,p.rOut,p.h-ts), M(-xo,p.rOut,p.h), `shoe ${ts.toFixed(2)}`, CS, 34);
+    }
+  }
+
+  // axis gizmo, pinned to the bottom-left corner
+  const ax={cx:62, cy:h-58, s:24};
+  const o0=proj(0,0,0,ax);
+  for(const [dx,dy,dz,t2,cc] of [[1,0,0,'tang','#8fb9d2'],[0,1,0,'rad','#e4b48a'],[0,0,1,'axial · flux','#9fd3b0']]){
+    const e=proj(dx,dy,dz,ax), g2=proj(dx*1.5,dy*1.5,dz*1.5,ax);
+    ctx.strokeStyle=cc; ctx.lineWidth=1.6;
+    ctx.beginPath(); ctx.moveTo(o0[0],o0[1]); ctx.lineTo(e[0],e[1]); ctx.stroke();
+    ctx.fillStyle=cc; ctx.beginPath(); ctx.arc(e[0],e[1],2,0,TAU); ctx.fill();
+    lab(g2[0],g2[1]+3,t2,cc,g2[0]<o0[0]?'right':'left');
+  }
+  lab(14,22,`${g.n} sheets of ${p.t} mm${p.integrated?', I-profile with shoes':''}${p.ret?`, mid-height tabs`:''} · ${p.w1.toFixed(1)}→${p.w2.toFixed(1)} mm wide · ${p.h} mm tall`,'#8d9aa4');
+  if(fr) lab(14,38,`frame halves shown pulled apart — each drops on from its own end`,'#b2ac9e');
+  lab(w-14,22,(g.n<=240?'every sheet drawn':'drawn as width classes')+` · r₁ ${p.rIn} → r₂ ${p.rOut} mm`,'#7d8a94','right');
+}
+
+function drawStack(w,h){
+  const {p,g}=STATE;
+  const wMax=Math.max(p.w2, p.shoe?shoeWidthAt(p,p.rOut):0);
+  const _=0;
+  const span=Math.max(wMax*1.5,(p.rOut-p.rIn)*1.2)+6;
+  const s=Math.min(w/span,(h-44)/span)*0.9;
+  const R=(p.rIn+p.rOut)/2;
+  const X=x=>w/2+x*s, Y=r=>h/2+14-(r-R)*s;
+
+  // the stack, one band per part type
+  for(const q of g.body){
+    ctx.fillStyle='rgba(111,163,196,.40)'; ctx.strokeStyle='#8fb9d2'; ctx.lineWidth=.8;
+    const y0=Y(q.rHi), y1=Y(q.rLo);
+    ctx.fillRect(X(-q.wBody/2),y0,q.wBody*s,y1-y0);
+    ctx.strokeRect(X(-q.wBody/2),y0,q.wBody*s,y1-y0);
+  }
+  for(const q of (p.integrated?g.body:g.shoe)){
+    if(!p.shoe) break;
+    ctx.strokeStyle='rgba(215,131,79,.75)'; ctx.lineWidth=1;
+    const y0=Y(q.rHi), y1=Y(q.rLo);
+    ctx.strokeRect(X(-q.w/2),y0,q.w*s,y1-y0);
+  }
+  // the true sector it approximates
+  if(p.aBody!=null){
+    ctx.strokeStyle='#e4b48a'; ctx.setLineDash([5,3]); ctx.lineWidth=1.3;
+    ctx.beginPath();
+    for(let k=0;k<=30;k++){const th=-p.aBody+2*p.aBody*k/30;
+      const x=p.rOut*Math.sin(th), r=p.rOut*Math.cos(th);
+      k?ctx.lineTo(X(x),Y(r)):ctx.moveTo(X(x),Y(r));}
+    for(let k=30;k>=0;k--){const th=-p.aBody+2*p.aBody*k/30;
+      ctx.lineTo(X(p.rIn*Math.sin(th)),Y(p.rIn*Math.cos(th)));}
+    ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+  }
+  // radius ticks
+  ctx.strokeStyle='#5f6b74'; ctx.lineWidth=1;
+  for(const [r,txt] of [[p.rIn,`r₁ ${p.rIn}`],[p.rOut,`r₂ ${p.rOut}`]]){
+    const xx=X(wMax/2)+16;
+    ctx.setLineDash([1,3]); ctx.beginPath(); ctx.moveTo(X(wMax/2)+4,Y(r)); ctx.lineTo(xx+4,Y(r)); ctx.stroke(); ctx.setLineDash([]);
+    lab(xx+9,Y(r)+4,txt,'#7c8892');
+  }
+  lab(14,22,`Looking down the axis · ${g.n} sheets of ${p.t} mm in ${g.parts.length} width class${g.parts.length>1?'es':''} · ${(g.fill*100).toFixed(1)}% of the sector`,'#8d9aa4');
+  legend(w,h,[['stack','#8fb9d2']].concat(p.aBody!=null?[['true sector','#e4b48a']]:[]).concat(p.shoe?[['shoe plates','#d7834f']]:[]));
+}
+
+function drawParts(w,h){
+  const {p,g}=STATE;
+  const n=g.parts.length, cols=Math.max(1,Math.ceil(Math.sqrt(n*w/Math.max(1,h-60))));
+  const rows=Math.ceil(n/cols);
+  const cw=(w-24)/cols, ch=(h-52)/rows;
+  const maxW=Math.max(...g.parts.map(q=>q.w)), maxH=Math.max(...g.parts.map(q=>q.h));
+  const s=Math.min((cw-14)/maxW,(ch-20)/maxH);
+  g.parts.forEach((q,i)=>{
+    const cx=12+(i%cols)*cw, cy=36+Math.floor(i/cols)*ch;
+    const pw=q.w*s, ph=q.h*s;
+    ctx.fillStyle=q.kind==='S'?'rgba(215,131,79,.28)':'rgba(111,163,196,.28)';
+    ctx.strokeStyle=q.kind==='S'?'#d7834f':'#8fb9d2'; ctx.lineWidth=1;
+    const ol=outline(q,0);
+    if(ol){
+      ctx.beginPath();
+      ol.forEach(([a2,b2],j)=>{const xx=cx+a2*s, yy=cy+b2*s; j?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);});
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else { ctx.fillRect(cx,cy,pw,ph); ctx.strokeRect(cx,cy,pw,ph); }
+    if(p.mtOn) for(const [mx,my] of bridgeMarks(q,0)){
+      ctx.fillStyle='#e8b04a'; ctx.beginPath(); ctx.arc(cx+mx*s,cy+my*s,3,0,TAU); ctx.fill(); }
+    lab(cx,cy+ph+12,`${q.kind==='S'?'S':''}${q.idx} · ${q.w.toFixed(2)}×${q.h.toFixed(0)} ×${q.qty*p.nTeeth}`,'#7d8a94');
+  });
+  lab(14,22,`${n} part type${n>1?'s':''}, drawn to scale · widths ${Math.min(...g.parts.map(q=>q.w)).toFixed(2)}–${maxW.toFixed(2)} mm${p.ret?` over the tabs (body + 2 × ${p.tabD})`:''}`,'#8d9aa4');
+}
+
+function drawSheet(w,h){
+  const {p,nst}=STATE;
+  if(!nst.sheets.length){ lab(14,22,'No parts to nest.','#8d9aa4'); return; }
+  const i=Math.min(+$('fileSel').value||0,nst.sheets.length-1);
+  const sheet=nst.sheets[i];
+  const SW=sheet.w||p.shW, SH=sheet.h||p.shH;
+  const s=Math.min((w-28)/SW,(h-56)/SH);
+  const ox=(w-SW*s)/2, oy=36;
+  ctx.strokeStyle='#54616b'; ctx.lineWidth=1.4; ctx.strokeRect(ox,oy,SW*s,SH*s);
+  for(const q of sheet.parts){
+    ctx.fillStyle=q.kind==='S'?'rgba(215,131,79,.30)':'rgba(111,163,196,.30)';
+    ctx.strokeStyle=q.kind==='S'?'#d7834f':'#8fb9d2'; ctx.lineWidth=.7;
+    const x=ox+q.px*s, y=oy+q.py*s, pw=q.pw*s, ph=q.ph*s;
+    const ol=outline(q,p.kerf);
+    if(ol){
+      ctx.beginPath();
+      ol.forEach(([a2,b2],j)=>{
+        const xx=x+a2*s, yy=y+b2*s; j?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);});
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else { ctx.fillRect(x,y,pw,ph); ctx.strokeRect(x,y,pw,ph); }
+    if(p.mtOn) for(const [mx,my] of bridgeMarks(q,p.kerf)){
+      ctx.fillStyle='#e8b04a'; ctx.beginPath(); ctx.arc(x+mx*s,y+my*s,Math.max(1.5,Math.min(3,s*0.6)),0,TAU); ctx.fill(); }
+    if(pw>16&&ph>10) lab(x+pw/2,y+ph/2+4,`${q.kind==='S'?'S':''}${q.idx}`,'#cfd8de','center');
+  }
+  const used=sheet.parts.reduce((a,q)=>a+q.pw*q.ph,0)/(SW*SH)*100;
+  lab(14,22,`${p.teeth} tooth${p.teeth>1?'s':''} · ${sheet.parts.length} parts · ${SW}×${SH} mm · ${used.toFixed(0)}% used`,'#8d9aa4');
+  lab(w-14,22,`h along Y → rolling direction`+(p.mtOn?' · ● micro-tab':''),'#7d8a94','right');
+}
+
+/* ---- frame: one half seen from the mating face, and a section through a tooth ---- */
+function drawFrame(w,h){
+  const {p,F,g}=STATE;
+  if(!F){
+    lab(14,22, p.retBlocked ? 'Integrated pole shoes block the frame — the halves could not pass them. Use separate shoe plates.'
+                            : 'Turn on the retention frame in panel 06.','#8d9aa4');
+    return;
+  }
+  const side=w>h*1.25, top=side?34:50, avail=h-top-30;
+  const A=side?{x:0,y:top,w:w*0.5,h:avail}:{x:0,y:top,w:w,h:avail*0.56};
+  const B=side?{x:w*0.5,y:top,w:w*0.5,h:avail}:{x:0,y:top+avail*0.56,w:w,h:avail*0.44};
+
+  // --- top view, mating face up
+  const s=Math.min(A.w-28,A.h-14)/(2*F.rf2+2);
+  const cx=A.x+A.w/2, cy=A.y+A.h/2;
+  const X=x=>cx+x*s, Y=y=>cy-y*s;
+  const sub=pts=>{pts.forEach(([x,y],i)=>i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y))); ctx.closePath();};
+  ctx.beginPath();
+  sub(F.rim);
+  if(F.rf1>0){ ctx.moveTo(X(F.rf1),Y(0)); ctx.arc(cx,cy,F.rf1*s,0,TAU,true); }
+  for(const q of F.pockets) sub(q);
+  for(const b of F.bolts){ ctx.moveTo(X(b.x)+b.r*s,Y(b.y)); ctx.arc(X(b.x),Y(b.y),b.r*s,0,TAU,true); }
+  ctx.fillStyle='rgba(178,172,158,.42)'; ctx.fill('evenodd');
+  ctx.strokeStyle='#b2ac9e'; ctx.lineWidth=1; ctx.stroke();
+  // teeth seated in the pockets
+  ctx.fillStyle='rgba(111,163,196,.38)';
+  for(const t of F.teeth){ ctx.beginPath(); sub(t); ctx.fill(); }
+  // tab recesses on this face
+  ctx.strokeStyle='#6fa3c4'; ctx.setLineDash([3,2]); ctx.lineWidth=1;
+  for(const q of F.recesses){ ctx.beginPath(); sub(q); ctx.stroke(); }
+  // flip axis through the index notch
+  const ax=Math.cos(F.phi0), ay=Math.sin(F.phi0), L=F.rf2+6;
+  ctx.strokeStyle='#d7834f'; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(X(-ax*L),Y(-ay*L)); ctx.lineTo(X(ax*L),Y(ay*L)); ctx.stroke(); ctx.setLineDash([]);
+  // label the end that points down the screen, clear of the title line
+  const e=ay>=0?-1:1;
+  lab(X(e*ax*L)+(e*ax>=0?6:-6),Y(e*ay*L)+4,'flip axis','#d7834f',e*ax>=0?'left':'right');
+
+  // --- section through one tooth at the mean radius, looking outward
+  const rm=(p.rIn+p.rOut)/2, hwT=F.hwT(rm), xs=rm*Math.tan(Math.PI/p.nTeeth);
+  const zc=F.zc, gp=p.fGap, ht=F.halfT, rd=F.recD;
+  const bodyZ0=zc-p.bodyH/2, bodyZ1=zc+p.bodyH/2;
+  const labW=side?150:120, infoH=side?0:48;          // narrow: notes go above the section
+  const s2=Math.min((B.w-labW-24)/(2*xs+2), (B.h-26-infoH)/(p.h+2));
+  const ox=B.x+12+(B.w-labW-24)/2, oy=B.y+infoH+(B.h-infoH)/2+8;
+  const SX=x=>ox+x*s2, SZ=z=>oy-(z-zc)*s2;
+  const poly=(pts,fill,stroke)=>{ctx.beginPath();pts.forEach(([x,z],i)=>i?ctx.lineTo(SX(x),SZ(z)):ctx.moveTo(SX(x),SZ(z)));
+    ctx.closePath(); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}};
+  const hwPm=F.hwP(rm), hwRm=F.hwR(rm);
+  for(const sg of [-1,1]){
+    const lo=[[sg*hwPm,zc-gp/2-ht],[sg*xs,zc-gp/2-ht],[sg*xs,zc-gp/2],[sg*hwRm,zc-gp/2],[sg*hwRm,zc-gp/2-rd],[sg*hwPm,zc-gp/2-rd]];
+    const up=lo.map(([x,z])=>[x,2*zc-z]);
+    poly(lo,'rgba(178,172,158,.55)','#b2ac9e'); poly(up,'rgba(178,172,158,.55)','#b2ac9e');
+    // coil halves, from the frame face to the end of the body
+    for(const [z0,z1] of [[zc+gp/2+ht,bodyZ1],[bodyZ0,zc-gp/2-ht]]){
+      if(z1-z0<=0) continue;
+      const xa=sg>0?hwT:-hwT-p.coilB;
+      ctx.fillStyle='rgba(215,122,69,.30)'; ctx.strokeStyle='#d77a45'; ctx.lineWidth=1;
+      ctx.fillRect(SX(xa),SZ(z1),p.coilB*s2,(z1-z0)*s2); ctx.strokeRect(SX(xa),SZ(z1),p.coilB*s2,(z1-z0)*s2);
+    }
+  }
+  // tooth with its tabs, and shoe plates if any
+  const tb=p.tabH/2, td=p.tabD;
+  poly([[-hwT,bodyZ0],[hwT,bodyZ0],[hwT,zc-tb],[hwT+td,zc-tb],[hwT+td,zc+tb],[hwT,zc+tb],[hwT,bodyZ1],
+        [-hwT,bodyZ1],[-hwT,zc+tb],[-hwT-td,zc+tb],[-hwT-td,zc-tb],[-hwT,zc-tb]],'rgba(111,163,196,.55)','#8fb9d2');
+  if(p.shoe && !p.integrated){
+    const ws=shoeWidthAt(p,rm)/2;
+    for(const [z0,z1] of [[0,p.shoeT],[p.h-p.shoeT,p.h]])
+      poly([[-ws,z0],[ws,z0],[ws,z1],[-ws,z1]],'rgba(215,131,79,.35)','#d7834f');
+  }
+  // slot-centre break lines
+  ctx.strokeStyle='#4a555e'; ctx.setLineDash([2,3]);
+  for(const sg of [-1,1]){ ctx.beginPath(); ctx.moveTo(SX(sg*xs),SZ(-0.5)); ctx.lineTo(SX(sg*xs),SZ(p.h+0.5)); ctx.stroke(); }
+  ctx.setLineDash([]);
+  // dimensions on the right
+  const dx=SX(xs)+14;
+  const vdim=(z0,z1,txt,col,k)=>{
+    const x=dx+k*10, a=SZ(z0), b=SZ(z1);
+    ctx.strokeStyle=col; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(x,a); ctx.lineTo(x,b); ctx.moveTo(x-3,a); ctx.lineTo(x+3,a); ctx.moveTo(x-3,b); ctx.lineTo(x+3,b); ctx.stroke();
+    lab(x+7,(a+b)/2+4,txt,col);
+  };
+  if(F.coilSpace>0) vdim(zc+gp/2+ht,bodyZ1,`coil ${F.coilSpace.toFixed(2)}`,'#d77a45',0);
+  vdim(zc-gp/2-ht,zc+gp/2+ht,`frame ${(2*ht+gp).toFixed(2)}`,'#b2ac9e',0);
+  if(F.coilSpace>0) vdim(bodyZ0,zc-gp/2-ht,`coil ${F.coilSpace.toFixed(2)}`,'#d77a45',0);
+  const tx=side?B.x+B.w-10:B.x+14, al=side?'right':'left', ty=B.y+14;
+  lab(tx,ty,   `tab ${p.tabH} × ${p.tabD} per flank`,'#8fb9d2',al);
+  lab(tx,ty+15,`recess ${rd.toFixed(2)} · floor ${F.floorT.toFixed(2)}`,'#b2ac9e',al);
+  lab(tx,ty+30,`faces stop ${gp} apart`,'#b2ac9e',al);
+
+  lab(14,22,`Frame half · mating face up · print two · Ø${(2*F.rf2).toFixed(0)} × ${F.halfT.toFixed(2)} mm${side?` · ${F.bolts.length} bolts`:''}`,'#8d9aa4');
+  if(side) lab(w-14,22,`section at r ${rm.toFixed(1)}, looking outward`,'#7d8a94','right');
+  else lab(14,38,`section at r ${rm.toFixed(1)}, looking outward`,'#7d8a94');
+  legend(w,h,[['frame','#b2ac9e'],['recess','#6fa3c4'],['tooth','#8fb9d2'],['coil','#d77a45']]);
+}
+
+let drag=null;
+cv.addEventListener('pointerdown',e=>{
+  if(VIEW!=='3d') return;
+  drag={x:e.clientX,y:e.clientY,az:cam.az,el:cam.el,pan:e.shiftKey,px:cam.panx,py:cam.pany};
+  cv.setPointerCapture(e.pointerId);
+});
+cv.addEventListener('pointermove',e=>{
+  if(!drag) return;
+  const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+  if(drag.pan){ cam.panx=drag.px+dx; cam.pany=drag.py+dy; }
+  else { cam.az=drag.az+dx*.008; cam.el=Math.max(-1.45,Math.min(1.45,drag.el+dy*.006)); }
+  draw();
+});
+addEventListener('pointerup',()=>{drag=null;});
+cv.addEventListener('wheel',e=>{
+  if(VIEW!=='3d') return;
+  e.preventDefault();
+  cam.zoom=Math.max(.25,Math.min(9,cam.zoom*(e.deltaY>0?.9:1.1)));
+  draw();
+},{passive:false});
+
+$('tabDims').onclick=()=>{ DIMS=!DIMS; $('tabDims').setAttribute('aria-selected',String(DIMS)); draw(); };
+function syncTabs(){
+  const fr=!!(STATE&&STATE.F);
+  $('tabFr3').hidden = VIEW!=='3d' || !fr;
+  $('tabDims').hidden = VIEW!=='3d';
+}
+$('tabFr3').onclick=()=>{ FRAME3D=!FRAME3D; $('tabFr3').setAttribute('aria-selected',String(FRAME3D)); syncTabs(); draw(); };
+function setView(v){
+  VIEW=v;
+  syncTabs();
+  $('tabFrame').setAttribute('aria-selected',String(v==='frame'));
+  $('tab3D').setAttribute('aria-selected',String(v==='3d'));
+  $('tabStack').setAttribute('aria-selected',String(v==='stack'));
+  $('tabParts').setAttribute('aria-selected',String(v==='parts'));
+  $('tabSheet').setAttribute('aria-selected',String(v==='sheet'));
+  $('vhint').textContent = v==='3d' ? 'drag to orbit · shift-drag to pan · wheel to zoom'
+                         : v==='sheet' ? 'pick a sheet in the Output bar' : '';
+  draw();
+}
+$('tab3D').onclick=()=>setView('3d');
+$('tabStack').onclick=()=>setView('stack');
+$('tabParts').onclick=()=>setView('parts');
+$('tabSheet').onclick=()=>setView('sheet');
+$('tabFrame').onclick=()=>setView('frame');
+$('fileSel').addEventListener('change',draw);
+
+/* ============================================================
+   store-only zip + save
+   ============================================================ */
+const CRC=(()=>{const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}
+  return b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=t[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;};})();
+function zip(files){
+  const enc=new TextEncoder(), parts=[], central=[]; let off=0;
+  const d=new Date(), dt=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1),
+        dd=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
+  for(const f of files){
+    const name=enc.encode(f.name), data=enc.encode(f.text), crc=CRC(data);
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true);
+    lh.setUint16(10,dt,true); lh.setUint16(12,dd,true);
+    lh.setUint32(14,crc,true); lh.setUint32(18,data.length,true); lh.setUint32(22,data.length,true);
+    lh.setUint16(26,name.length,true);
+    parts.push(new Uint8Array(lh.buffer),name,data);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true);
+    ch.setUint16(12,dt,true); ch.setUint16(14,dd,true);
+    ch.setUint32(16,crc,true); ch.setUint32(20,data.length,true); ch.setUint32(24,data.length,true);
+    ch.setUint16(28,name.length,true); ch.setUint32(42,off,true);
+    central.push(new Uint8Array(ch.buffer),name);
+    off+=30+name.length+data.length;
+  }
+  const cd=central.reduce((a,b)=>a+b.length,0);
+  const eo=new DataView(new ArrayBuffer(22));
+  eo.setUint32(0,0x06054b50,true); eo.setUint16(8,files.length,true); eo.setUint16(10,files.length,true);
+  eo.setUint32(12,cd,true); eo.setUint32(16,off,true);
+  return new Blob([...parts,...central,new Uint8Array(eo.buffer)],{type:'application/zip'});
+}
+let DL=null;
+(async()=>{ try{ DL=await window.claude?.use?.('downloads'); }catch(e){ DL=null; } })();
+function flash(b,t){const o=b.textContent;b.textContent=t;b.disabled=true;setTimeout(()=>{b.textContent=o;b.disabled=false;},1400);}
+async function deliver(list,zipName,btn,mime){
+  const one=list.length===1;
+  if(DL){
+    try{ await DL.save(one?{filename:list[0].name,data:list[0].text}:{filename:zipName,data:zip(list)}); flash(btn,'Saved'); }
+    catch(e){ flash(btn, e&&e.code==='declined'?'Cancelled':'Failed'); }
+    return;
+  }
+  const blob=one?new Blob([list[0].text],{type:mime||'image/svg+xml'}):zip(list);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=one?list[0].name:zipName;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000); flash(btn,'Saved');
+}
+$('btnSave').onclick=()=>{
+  if(!STATE) return;
+  if(!STATE.files.length) return flash($('btnSave'),'No parts');
+  deliver([STATE.files[Math.min(Math.max(0,+$('fileSel').value||0),STATE.files.length-1)]],'',$('btnSave'));
+};
+$('btnAll').onclick=()=>{
+  if(!STATE||!STATE.files.length) return;
+  deliver(STATE.files,'laminations_svg.zip',$('btnAll'));
+};
+$('btnFrame').onclick=()=>{
+  if(!STATE||!STATE.frameFiles.length) return flash($('btnFrame'),'Frame off');
+  deliver(STATE.frameFiles,'retention_frame.zip',$('btnFrame'));
+};
+$('btnCsv').onclick=()=>{ if(STATE) deliver([{name:'parts_list.csv',text:partsCSV(STATE.p,STATE.g)}],'',$('btnCsv'),'text/csv'); };
+
+let pend=null;
+$('form').addEventListener('input',()=>{clearTimeout(pend);pend=setTimeout(run,110);});
+$('form').addEventListener('change',run);
+$('form').addEventListener('submit',e=>e.preventDefault());
+matchMedia('(prefers-color-scheme:dark)').addEventListener?.('change',draw);
+fit(); run();
+</script>
+
+</body></html>

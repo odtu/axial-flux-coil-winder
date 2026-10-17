@@ -55,12 +55,15 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font
 .mast p{margin:4px 0 0;color:var(--ink2);font-size:13px;max-width:58ch}
 .machine{font-family:var(--mono);font-size:11px;color:var(--ink3);text-align:right;line-height:1.7;white-space:nowrap}
 .machine b{color:var(--ink2);font-weight:500}
+a.sib{display:block;text-align:right;margin-top:6px;font-family:var(--mono);font-size:11px;
+  color:var(--ink3);text-decoration:none;border-bottom:1px solid transparent}
+a.sib:hover{color:var(--copper)}
 
 .cols{display:grid;grid-template-columns:336px minmax(0,1fr);gap:18px;align-items:start}
-@media (max-width:1000px){.cols{grid-template-columns:1fr}.rail{order:2}.stage{order:1}}
+@media (max-width:1000px){.cols{grid-template-columns:minmax(0,1fr)}.rail{order:2}.stage{order:1}}
 
 .rail{display:flex;flex-direction:column;gap:10px}
-fieldset{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);margin:0;padding:10px 12px 12px}
+fieldset{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);margin:0;padding:10px 12px 12px;min-width:0}
 legend{font-family:var(--cond);font-weight:600;text-transform:uppercase;letter-spacing:.09em;font-size:12px;
   color:var(--ink2);padding:0 6px;margin-left:-4px}
 legend .n{color:var(--copper);font-family:var(--mono);font-size:10px;margin-right:5px}
@@ -105,9 +108,9 @@ button.mini:hover{border-style:solid;color:var(--ink)}
 canvas{display:block;width:100%;height:450px;touch-action:none}
 @media (max-width:1000px){canvas{height:340px}}
 
-.readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:1px;background:var(--line);
+.readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:0;background:var(--panel);
   border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.ro{background:var(--panel);padding:8px 10px}
+.ro{background:var(--panel);padding:8px 10px;box-shadow:1px 0 0 var(--line),0 1px 0 var(--line)}
 .ro dt{font-family:var(--cond);text-transform:uppercase;letter-spacing:.07em;font-size:10.5px;color:var(--ink3);margin:0}
 .ro dd{margin:1px 0 0;font-family:var(--mono);font-size:16px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink)}
 .ro dd s{text-decoration:none;font-size:10.5px;color:var(--ink3);margin-left:2px}
@@ -151,8 +154,9 @@ pre.gcode i{color:var(--ink3);font-style:normal}
 .credit b{color:var(--ink2);font-weight:500}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
-
 </head><body>
+
+
 <div class="wrap">
 
 <header class="mast">
@@ -160,7 +164,10 @@ pre.gcode i{color:var(--ink3);font-style:normal}
     <h1>Axial Coil <em>Winder</em></h1>
     <p>Needle-winding G-code for axial-flux stators. The core sits on the bed; the hotend carries the wire guide and orbits each tooth in X&#8209;Y, climbing Z one wire pitch per turn.</p>
   </div>
-  <div class="machine" id="machineTag"></div>
+  <div>
+    <div class="machine" id="machineTag"></div>
+    <a class="sib" href="lamination-cutter/index.html">Lamination Cutter →</a>
+  </div>
 </header>
 
 <div class="cols">
@@ -185,19 +192,28 @@ pre.gcode i{color:var(--ink3);font-style:normal}
       <option value="chord">straight (chords)</option></select></div>
     <div class="row"><label for="rc">Corner radius</label><input type="number" id="rc" value="1.5" step="0.1" min="0"></div>
     <div class="row"><label for="winH">Tooth height <b>h</b></label><input type="number" id="winH" value="18" step="0.1" min="1"></div>
+    <label class="chk"><input type="checkbox" id="spOn"> Split coil — mid-height frame</label>
+    <div id="spBox" hidden>
+      <div class="row"><label for="frameT">&nbsp;&nbsp;↳ frame thickness</label><input type="number" id="frameT" value="3.9" step="0.1" min="0.5"></div>
+      <div class="row"><label for="spRun">&nbsp;&nbsp;↳ this run</label><select id="spRun">
+        <option value="up">upper half</option><option value="lo">lower half — stator flipped</option></select></div>
+      <p class="sub">Each half winds on <code>(h − frame)/2</code> of tooth, starting at the frame face — set <i>Tooth base Z</i> to that face. Turns are per tooth; each run winds half of them. Wind every upper half, flip the stator, then wind every lower half.</p>
+    </div>
     <div class="derived" id="geoOut"></div>
   </fieldset>
 
   <fieldset>
     <legend><span class="n">02</span>Wire</legend>
     <div class="row"><label for="awg">Preset</label><select id="awg"></select></div>
-    <div class="row"><label for="dBare">Bare copper Ø</label><input type="number" id="dBare" value="0.8" step="0.01" min="0.05"></div>
-    <div class="row"><label for="dOd">Insulated Ø</label><input type="number" id="dOd" value="0.87" step="0.01" min="0.05"></div>
+    <div class="row"><label for="dBare">Bare copper Ø</label><input type="number" id="dBare" value="0.8" step="0.01" min="0.05" required></div>
+    <div class="row"><label for="dOd">Insulated Ø</label><input type="number" id="dOd" value="0.87" step="0.01" min="0.05" required></div>
     <div class="row"><label for="turns">Turns</label><input type="number" id="turns" value="60" step="1" min="1"></div>
     <div class="row"><label for="layerK">Layer pitch ×Ø</label><input type="number" id="layerK" value="1" step="0.01" min="0.5" max="1.2"></div>
     <div class="row"><label for="tplMode">Turns / layer</label><select id="tplMode"><option value="auto">auto (fit tooth height)</option><option value="man">manual</option></select></div>
     <div class="row" id="tplRow" hidden><label for="tplMan">&nbsp;&nbsp;↳ per layer</label><input type="number" id="tplMan" value="19" step="1" min="1"></div>
-    <p class="sub">0.87 ≈ nested (orthocyclic) layer pitch; 1.0 = square stacking.</p>
+    <div class="row"><label for="sense">Coil sense</label><select id="sense">
+      <option value="ccw">CCW seen from above</option><option value="cw">CW seen from above</option></select></div>
+    <p class="sub">0.87 ≈ nested (orthocyclic) layer pitch; 1.0 = square stacking. With a split coil, sense is seen from the upper face, and the lower run reverses the machine direction to match.</p>
   </fieldset>
 
   <fieldset>
@@ -606,8 +622,10 @@ function readParams(){
   const p={
     rIn:nv('rIn',45), rOut:nv('rOut',72), nTeeth:Math.max(1,Math.round(nv('nTeeth',12))),
     rc:nv('rc',1.5), winH:nv('winH',18), arcEdges:$('edgeMode').value==='arc',
-    dBare:nv('dBare',.8), dOd:nv('dOd',.87), turns:Math.max(1,Math.round(nv('turns',60))),
-    layerK:nv('layerK',1), nR:nv('nR',1.2), clr:nv('clr',.15), stepDeg:nv('stepDeg',60),
+    dBare:Math.max(0.01,nv('dBare',.8)), dOd:Math.max(0.01,nv('dOd',.87)),
+    turns:Math.max(1,Math.round(nv('turns',60))),
+    layerK:Math.max(0.1,nv('layerK',1)), nR:Math.max(0,nv('nR',1.2)),
+    clr:Math.max(0,nv('clr',.15)), stepDeg:Math.min(180,Math.max(5,nv('stepDeg',60))),
     cx:nv('cx',110), cy:nv('cy',110), ang0:nv('ang0',90),
     z0:nv('z0',0), zSafe:nv('zSafe',45), parkX:nv('parkX',5), parkY:nv('parkY',210),
     cornerPct:nv('cornerPct',60), travelF:nv('travelF',3000), accel:nv('accel',400),
@@ -619,7 +637,15 @@ function readParams(){
     pause:$('optPause').checked, limits:$('optLimits').checked, split:$('optSplit').checked,
     beep:$('optBeep').checked, helper:$('optHelper').checked,
     rateMode:$('rate').value, rateVal:nv('rateVal',20), rimR:nv('rimR',nv('rOut',72)),
+    half:$('spOn').checked, frameT:Math.max(0,nv('frameT',3.9)), run:$('spRun').value, sense:$('sense').value,
   };
+  // split coil: each run winds half the turns on half the remaining tooth
+  p.turnsTooth=p.turns;
+  if(p.half) p.turns=Math.max(1, p.run==='up'?Math.ceil(p.turnsTooth/2):Math.floor(p.turnsTooth/2));
+  p.hCoil = p.half ? Math.max(0.1,(p.winH-p.frameT)/2) : p.winH;
+  // flipping the stator mirrors the view, so the lower run turns the other way in machine X/Y
+  p.lower = p.half && p.run==='lo';
+  p.rev = (p.sense==='cw') !== p.lower;
   // tooth angular half-widths
   const pitch=TAU/p.nTeeth;
   const m=$('wMode').value;
@@ -633,9 +659,9 @@ function readParams(){
   p.wIn=2*p.rIn*Math.sin(p.aIn); p.wOut=2*p.rOut*Math.sin(p.aOut);
   p.pz=p.dOd; p.layerPitch=p.dOd*p.layerK;
   p.teeth=parseTeeth($('teethSel').value,p.nTeeth); if(!p.teeth.length) p.teeth=[1];
-  p.tplAuto=Math.max(1,Math.floor(p.winH/p.pz)-1);
+  p.tplAuto=Math.max(1,Math.min(5000,Math.floor(p.hCoil/p.pz)-1)||1);
   p.tpl=$('tplMode').value==='man'?Math.max(1,Math.round(nv('tplMan',p.tplAuto))):p.tplAuto;
-  p.layers=Math.ceil(p.turns/p.tpl);
+  p.layers=Math.max(1,Math.min(500,Math.ceil(p.turns/p.tpl)));
 
   // alignment solves
   p.fit=null; p.plane=null; p.angFit=null;
@@ -695,6 +721,8 @@ function build(p){
       sc+=frac; dir=-dir;
     }
   }
+  // the tooth is symmetric about its centreline, so mirroring x reverses the winding direction
+  if(p.rev) for(const q of path) q.x=-q.x;
   let len=0,maxZ=path.length?path[0].z:0;
   for(let i=1;i<path.length;i++){
     const a=path[i-1],b=path[i];
@@ -831,6 +859,9 @@ function header(p,geo,fd,st,cl,which){
 `;         corner r ${p.rc} mm   tooth height ${p.winH} mm`,
 `; WIRE    ${p.dBare} mm bare / ${p.dOd} mm insulated`,
 `; WINDING ${p.turns} turns   ${p.layers} layers x ${p.tpl} (last ${p.turns-(p.layers-1)*p.tpl})`,
+p.half?`; SPLIT   ${p.lower?'LOWER':'UPPER'} half of a coil split by a ${p.frameT} mm mid-height frame`:null,
+p.half?`;         ${p.turns} of ${p.turnsTooth} turns on ${p.hCoil.toFixed(2)} mm of tooth; tooth base Z is the frame face`:null,
+`; SENSE   ${p.sense.toUpperCase()} seen from ${p.half?'the upper face':'above'}; this file runs ${p.rev?'CW':'CCW'} in machine X/Y${p.lower?' (stator upside down)':''}`,
 `;         axial pitch ${p.pz.toFixed(3)}   layer pitch ${p.layerPitch.toFixed(3)} mm`,
 `;         coil build ${st.build.toFixed(2)} mm   coil height ${st.coilH.toFixed(2)} mm`,
 `; SLOT    area ${st.slotA.toFixed(0)} mm2 at r_mid   fill ${(st.slotFill*100).toFixed(1)} %`,
@@ -844,6 +875,12 @@ p.plane?`;         per-tooth Z from a 3-point plane`:null,
 `; TEETH   ${p.teeth.join(',')} of ${p.nTeeth}`,
 `; FEED    ${fd.F} mm/min straight, ${fd.Fc} corners  (~${(fd.F/fd.mlt).toFixed(1)} turns/min)`,
 `;---------------------------------------------------------------`,
+...(p.lower?[
+`; LOWER HALF — every upper half is wound and the stator is now`,
+`;   upside down on its stand. Flip it about the frame's index notch so`,
+`;   the teeth land where they were, then redo the datum: the centre`,
+`;   moves if the stand is not symmetric. Tooth base Z is the frame`,
+`;   face that is now on top.`]:[]),
 ...start,
 ...ABORT_NOTE,
 `;===============================================================`,
@@ -979,13 +1016,14 @@ function statsOf(p,geo,fd){
   const r20=RHO*lenM/areaM, build=p.layers*p.layerPitch;
   const coilH=Math.min(p.turns,p.tpl)*p.pz+p.pz;
   const cuSide=p.turns*Math.PI/4*p.dBare*p.dBare, bundle=build*coilH;
+  const cuTooth=p.turnsTooth*Math.PI/4*p.dBare*p.dBare;      // both halves, when split
   // conventional slot figures, taken at the mean radius
   const aMid=(p.aIn+p.aOut)/2;
   const slotW=p.rMid*Math.max(0,TAU/p.nTeeth-2*aMid);
   const slotA=slotW*p.winH;
   return {wireLen:lenM,r20,r100:r20*(1+ALPHA*80),massG:DENS*lenM*areaM*1000,
           build,coilH,fill:bundle>0?cuSide/bundle:0,
-          slotW,slotA,slotFill:slotA>0?2*cuSide/slotA:0,
+          slotW,slotA,slotFill:slotA>0?2*cuTooth/slotA:0,
           timeS:(geo.pathLen/fd.F)*60};
 }
 function checks(p,geo,fd,cl,bbox){
@@ -1000,7 +1038,13 @@ function checks(p,geo,fd,cl,bbox){
     add('bad','z',`Top of travel ${Math.max(geo.maxZ,p.zSafe).toFixed(1)} mm exceeds the ${p.bedZ} mm Z limit.`);
 
   const coilH=Math.min(p.turns,p.tpl)*p.pz+p.pz;
-  if(coilH>p.winH+1e-6) add('warn','height',`Coil stands ${coilH.toFixed(1)} mm tall against a ${p.winH} mm tooth — it will sit proud of the tooth top.`);
+  if(coilH>p.hCoil+1e-6) add('warn','height',`Coil stands ${coilH.toFixed(1)} mm tall against ${p.hCoil.toFixed(2)} mm of ${p.half?'tooth above the frame':'tooth'} — it will sit proud of the tooth${p.half?' end':' top'}.`);
+  if(p.half){
+    if(p.hCoil<2*p.pz) add('bad','split',`Only ${p.hCoil.toFixed(2)} mm of tooth each side of a ${p.frameT} mm frame — not room for two turns of this wire.`);
+    add('ok','split',`${p.lower?'Lower':'Upper'} half: ${p.turns} of ${p.turnsTooth} turns on ${p.hCoil.toFixed(2)} mm of tooth, starting at the frame face. Machine direction ${p.rev?'CW':'CCW'} from above${p.lower?' — reversed, because the stator is upside down':''}, so both halves turn the same way round the tooth.`);
+    if(p.layers%2) add('warn','leads',`${p.layers} layers is odd, so this half finishes at the tooth end, not at the frame. The crossover lead then has to run back along the coil to reach the notch. An even layer count keeps both leads at the frame face.`);
+    else add('ok','leads',`Even layer count: both leads come off at the frame face. Join each tooth's upper finish to its lower start through the lead notch, and the current turns the same way in both halves.`);
+  }
 
   if(p.nTeeth>1){
     const needle=2*p.nR;
@@ -1044,6 +1088,7 @@ const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function run(){
   const p=readParams();
   $('tplRow').hidden=$('tplMode').value!=='man';
+  $('spBox').hidden=!p.half;
   if($('tplMode').value!=='man') $('tplMan').value=p.tplAuto;
 
   // alignment feedback
@@ -1071,7 +1116,8 @@ function run(){
     `span <b>${(2*p.aOut*R2D).toFixed(2)}°</b> of ${(360/p.nTeeth).toFixed(2)}° pitch<br>`+
     `w₁ ${p.wIn.toFixed(2)} · w₂ ${p.wOut.toFixed(2)} · L ${p.L.toFixed(2)} mm<br>`+
     `slot opening ${(TAU*p.rIn/p.nTeeth-p.wIn).toFixed(2)} mm at r₁, ${(TAU*p.rOut/p.nTeeth-p.wOut).toFixed(2)} mm at r₂`+
-    `<br>slot ${st.slotW.toFixed(2)} mm wide × ${p.winH} mm = <b>${st.slotA.toFixed(0)} mm²</b> at r<sub>mid</sub>`;
+    `<br>slot ${st.slotW.toFixed(2)} mm wide × ${p.winH} mm = <b>${st.slotA.toFixed(0)} mm²</b> at r<sub>mid</sub>`+
+    (p.half?`<br>split: <b>${p.hCoil.toFixed(2)}</b> mm of tooth each side of a ${p.frameT} mm frame`:'');
 
   const bbox={minX:1e9,maxX:-1e9,minY:1e9,maxY:-1e9};
   for(const i of p.teeth){
@@ -1095,19 +1141,19 @@ function run(){
     const L=header(p,geo,fd,st,cl);
     for(const i of p.teeth) emitTooth(p,geo,i,fd,L);
     L.push(...footer(p));
-    files.push({name:`coil_${p.turns}t_${p.dOd}mm.gcode`, text:L.join('\n')+'\n'});
+    files.push({name:`coil_${p.half?`${p.turnsTooth}t_${p.lower?'lower':'upper'}`:`${p.turns}t`}_${p.dOd}mm.gcode`, text:L.join('\n')+'\n'});
   }
   STATE={p,geo,fd,st,cl,files,bbox};
 
   const per=st.timeS, all=per*p.teeth.length;
   const tight=cl.gap<2*p.nR;
   $('readouts').innerHTML=[
-    ['Turns',`${p.turns}`,'',0],
+    ['Turns',`${p.turns}`,p.half?`of ${p.turnsTooth}`:'',0],
     ['Layers',`${p.layers}`,`× ${p.tpl}`,0],
     ['MLT',fd.mlt.toFixed(1),'mm',0],
-    ['Wire / coil',st.wireLen.toFixed(2),'m',0],
-    ['R @ 20 °C',st.r20.toFixed(3),'Ω',0],
-    ['R @ 100 °C',st.r100.toFixed(3),'Ω',0],
+    [p.half?'Wire / half':'Wire / coil',st.wireLen.toFixed(2),'m',0],
+    [p.half?'R half @ 20 °C':'R @ 20 °C',st.r20.toFixed(3),'Ω',0],
+    [p.half?'R half @ 100 °C':'R @ 100 °C',st.r100.toFixed(3),'Ω',0],
     ['Copper',st.massG.toFixed(1),'g',0],
     ['Coil build',st.build.toFixed(2),'mm',0],
     ['Coil height',st.coilH.toFixed(2),'mm',0],
@@ -1205,7 +1251,7 @@ function draw3d(w,h){
   const {p,geo}=STATE, R=p.rMid;
   const span=Math.max(p.wOut,p.L)+2*geo.outer.t+6;
   const o={cx:w/2+cam.panx, cy:h/2+30+cam.pany, s:Math.min(w,h)/(span*1.5)*cam.zoom};
-  const top=p.z0+p.winH;
+  const top=p.z0+p.hCoil;
   const T=(x,y)=>[x,y-R];                    // recentre the tooth for display
 
   ctx.strokeStyle='#232b31'; ctx.lineWidth=1;
@@ -1253,7 +1299,8 @@ function draw3d(w,h){
   const s0=(()=>{const q=path[0],[x,y]=T(q.x,q.y);return proj(x,y,q.z,o);})();
   ctx.fillStyle='#e9e2d8'; ctx.beginPath(); ctx.arc(s0[0],s0[1],3,0,TAU); ctx.fill();
   label(s0[0]+7,s0[1]+3,'start','#cfd8de');
-  label(14,22,`Tooth 1 · r ${p.rIn}–${p.rOut} mm · ${p.arcEdges?'arc':'straight'} edges`,'#8d9aa4');
+  label(14,22,`Tooth 1 · r ${p.rIn}–${p.rOut} mm · ${p.arcEdges?'arc':'straight'} edges`+
+    (p.half?` · ${p.lower?'lower':'upper'} half above the frame face`:'')+` · ${p.rev?'CW':'CCW'}`,'#8d9aa4');
   legend(w,h,[['layer 1',ramp(0)],[`layer ${p.layers}`,ramp(1)],['lamination','#5c6e7c']]);
 }
 
@@ -1486,7 +1533,7 @@ $('btnSave').onclick=()=>{ if(STATE) deliver([STATE.files[curIdx()]],'',$('btnSa
 $('btnSaveAll').onclick=()=>{
   if(!STATE) return;
   const p=STATE.p;
-  deliver(STATE.files,`coil_winding_${p.turns}t_${p.dOd}mm.zip`,$('btnSaveAll'));
+  deliver(STATE.files,`coil_winding_${p.half?`${p.turnsTooth}t_${p.lower?'lower':'upper'}`:`${p.turns}t`}_${p.dOd}mm.zip`,$('btnSaveAll'));
 };
 
 let pend=null;

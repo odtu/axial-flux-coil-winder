@@ -17,6 +17,7 @@ A complete reference for the generator. If you only want to get winding, the [qu
 9. [G-code reference](#9-g-code-reference)
 10. [Warnings](#10-warnings)
 11. [Limitations and things that will bite](#11-limitations-and-things-that-will-bite)
+12. [Split coils and the retention frame](#12-split-coils-and-the-retention-frame)
 
 ---
 
@@ -175,6 +176,9 @@ It pairs well with the alignment lap: a marker in the guide plus a blind start d
 | **Inner / outer edges** | `arcs` for a lamination cut on a radius; `straight` for genuinely flat faces |
 | **Corner radius** | Lamination corner fillet. The winding path's corner radius is this plus the standoff |
 | **Tooth height h** | Axial height available for the coil, measured from the yoke face. Sets turns per layer |
+| **Split coil — mid-height frame** | For teeth held by a printed frame at mid-height (see [section 12](#12-split-coils-and-the-retention-frame)). The coil is wound in two halves, one each side of the frame |
+| ↳ **frame thickness** | Assembled frame thickness, clamp gap included. Each half winds on `(h − frame)/2` |
+| ↳ **this run** | `upper half`, or `lower half — stator flipped`. The lower run reverses the machine direction so both halves turn the same way round the tooth |
 
 The derived block shows the resulting tooth span, w₁, w₂, L, the slot opening at each radius, and the slot area.
 
@@ -191,6 +195,8 @@ The preset dropdown fills both diameters from a metric or AWG selection; the ins
 **Layer pitch ×Ø** is 1.0 for square stacking and about 0.87 for nested (orthocyclic) packing. Real needle winding rarely achieves true orthocyclic packing, so 1.0 is the honest default.
 
 **Turns / layer** is computed automatically to fit the tooth height; switch to manual if your crossover geometry needs something tighter.
+
+**Coil sense** is the direction the wire goes round the tooth, seen from above: CCW (the default) or CW. Use it to wind alternate teeth the other way without swapping leads. With a split coil, sense is seen from the upper face, and the lower run works out its own machine direction.
 
 ### 03 — Needle
 
@@ -392,6 +398,7 @@ Straight runs are emitted as a single `G1` each, since a straight segment with a
 | `setup_touchoff.gcode` | Helper option on | Walks the needle to each touch-off approach. X/Y only — Z is never commanded |
 | `align_lap.gcode` | Alignment lap on | Marker trace of layer 1 at the yoke face |
 | `coil_<turns>t_<Ø>mm.gcode` | Always | The winding job |
+| `coil_<turns>t_upper_<Ø>mm.gcode` / `…_lower_…` | Split coil on | One half of a split coil; `<turns>` is per tooth |
 | `coil_T01.gcode` … | One file per tooth on | The job split by tooth |
 
 **Download** saves whichever file is chosen in the dropdown next to the G-code heading; **All · zip** saves every file at once. **Copy** copies the chosen file to the clipboard.
@@ -441,6 +448,51 @@ One quirk worth knowing: when the tool runs as a hosted artifact on claude.ai, t
 **Arc vs chord edges** is a real choice, not cosmetic. At r₂ = 72 mm with a 15° tooth, picking the wrong one is a 0.6 mm error mid-edge against a 1.785 mm standoff.
 
 **Single-tooth concentrated windings only.** Distributed windings, multi-tooth coils and toroids are outside what this models.
+
+---
+
+## 12. Split coils and the retention frame
+
+The rotors pull every tooth along the axis. At 0.8 T of air-gap flux density the magnetic pressure is `B²/2μ₀` ≈ 0.25 MPa — about 105 N on a 12-tooth, r₁ 45 / r₂ 72 tooth, and **1.3 kN on the whole stator, from one side only**, while the first rotor goes on. The pull grows as a tooth moves toward the rotor, so any play makes things worse rather than settling. In a yokeless stator nothing else holds the teeth.
+
+For a first prototype, a 3D-printed frame at mid-height does the job. The [Lamination Cutter](../lamination-cutter/) draws both the laminations and the frame, and the winder winds the coil in two halves on either side of it.
+
+### The idea
+
+![Retention frame: top view and section](../lamination-cutter/docs/images/view-frame.png)
+
+- **A tab, not a groove.** Every sheet gets a small tab on both flanks at mid-height. A groove would remove steel from the narrowest part of the tooth, where flux density is already highest. A tab only adds steel, and only in the slot.
+- **Two identical halves.** They split at the axial mid-plane. One slides onto the teeth from +z and the other from −z, and together they trap the tabs. The bolt pattern is symmetric about the index notch, so you print one STL twice and turn one over.
+- **No play, by construction.** The two recess depths add up to less than the tab height by the **clamp gap**, so the frame faces stop short of each other. Tightening the bolts loads the tabs, not the faces.
+- **The frame is also the stacking jig.** The loose sheets are held in their pockets before any copper or adhesive goes on.
+
+![The tooth and the exploded frame halves](../lamination-cutter/docs/images/view-3d-frame.png)
+
+### The frame itself
+
+The tab size, clamp gap, rings, bolts, lead notch and crush ribs are all set in the Lamination Cutter's panel 06. It exports the frame half as OpenSCAD, DXF and SVG. The [Lamination Cutter manual](../lamination-cutter/docs/MANUAL.md#9-the-retention-frame) covers the fields, the geometry, printing and assembly. Whatever assembled frame thickness you set there, enter the same value here: each coil half then gets `(h − frame)/2` of tooth. The numbers below are for this winder's own default 18 mm tooth with a 3.9 mm frame.
+
+### Building it
+
+1. **Cut** the laminations with tabs on, one tooth per run as usual.
+2. **Print two halves** mating face up (recesses on top). No supports are needed. ASA, ABS or nylon are better than PLA, which creeps under a steady load.
+3. **Stack.** Lay one half on the bench with its mating face up. Stand the sheets in each pocket in order, inner first, with the tabs resting on the recess floor. The crush ribs hold the stack against the inner wall.
+4. **Close.** Turn the second half over about the index notch and lower it onto the teeth. Bolt both rings and tighten evenly: the faces should stop with the clamp gap still visible.
+5. **Wind the upper halves.** Put the stator on a ring stand, since the teeth stand proud on both sides. In the winder, tick *Split coil*, enter the same frame thickness, choose *upper half*, set *Tooth base Z* to the frame face and redo the datum. Wind every tooth.
+6. **Flip and wind the lower halves.** Turn the stator over about the index notch, redo the datum, choose *lower half — stator flipped* and wind every tooth again. The file reverses the machine direction for you.
+7. **Join** each tooth's upper finish to its lower start through the lead notch. With an even layer count both leads come off at the frame face, and current then circulates the same way in both halves.
+
+### What it costs
+
+The frame takes 3.9 mm out of the middle of the tooth. On the default 18 mm tooth with 0.87 mm wire that leaves 7 turns per layer per half, and four layers per half before the needle runs out of slot — **56 turns where an unsplit coil would get 60**. A fifth layer leaves 1.58 mm of slot against a 2.4 mm needle. This cost comes from gripping the tooth at mid-height at all, not from the two-piece frame.
+
+### Checks the Lamination Cutter makes
+
+- **Recess floor** under 1.2 mm warns, and under 0.8 mm fails: that floor carries the whole pull.
+- **Bolt holes** closer than 1 mm to a pocket or edge warn. So do **bolt heads** that fall inside the coil build allowance, because the end turns would land on them.
+- **Plastic between neighbouring recesses** under 1.2 mm fails.
+- **Bolt pattern**: if the bolt spacing does not divide N, the pattern is not symmetric and the flipped half will not match.
+- **Integrated pole shoes** block the frame entirely, since neither half can pass a shoe. Use separate shoe plates, bonded on after winding.
 
 ---
 

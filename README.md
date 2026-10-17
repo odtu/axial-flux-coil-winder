@@ -18,6 +18,7 @@ A single self-contained HTML file. No build step, no dependencies, no server —
 - Models inner and outer edges as **true arcs**, as a lamination cut on a radius actually is, not as chords.
 - Reports the **true minimum coil-to-coil clearance** over the whole path, and the radius where it occurs — which is what decides whether the needle can physically finish the last layer.
 - Solves your **datum from touch-off points**: a least-squares circle through rim touches gives the centre, two flank touches give the angle, three yoke touches give a Z plane that is corrected per tooth.
+- Winds **split coils** for teeth held by a mid-height frame: upper half, flip, lower half, with the direction reversed so both halves add.
 - Gives the numbers you actually want out of a winding: MLT, wire length, resistance at 20 °C and 100 °C, copper mass, slot fill, coil build and height.
 
 ---
@@ -77,6 +78,14 @@ A single self-contained HTML file. No build step, no dependencies, no server —
 Two fill figures, and they mean different things. **Slot fill** is the conventional one — both coil sides over the slot area at the mean radius. **Bundle fill** is how tightly the wire packs inside one coil's own cross-section. A large gap between them is the signature of needle winding: the wire packs fine, but the coil stops growing once the needle can no longer pass through what is left of the slot.
 
 ---
+
+## Also in this repo: Lamination Cutter
+
+**[`lamination-cutter/`](lamination-cutter/)** cuts the teeth that this tool winds. It produces fibre-laser SVGs for yokeless axial-flux teeth built from radially stacked sheets, so every part is a plain rectangle. It also offers optional pole shoes and micro-tabs, and a 3D-printed retention frame that holds the teeth against the rotor pull.
+
+![Lamination Cutter](lamination-cutter/docs/images/view-frame.png)
+
+**[▶ Open it](https://odtu.github.io/axial-flux-coil-winder/lamination-cutter/)** · [README](lamination-cutter/README.md) · [Manual](lamination-cutter/docs/MANUAL.md)
 
 ## Documentation
 
