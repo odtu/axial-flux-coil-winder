@@ -64,6 +64,8 @@ The **[full manual](docs/MANUAL.md)** covers every parameter, the five views, th
 
 ## Five views
 
+All five views zoom (mouse wheel or pinch) and pan (drag). Parts and Sheet show the exact cut path, so you can zoom in on a corner fillet or a micro-tab gap.
+
 | 3D | Stack | Parts |
 |---|---|---|
 | ![](docs/images/view-3d.png) | ![](docs/images/view-stack.png) | ![](docs/images/view-parts.png) |

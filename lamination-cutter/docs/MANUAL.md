@@ -158,6 +158,10 @@ On by default. Every body sheet gets a tab on both flanks at mid-height, and a p
 
 ## 4. The five views
 
+Every view zooms. Use the mouse wheel or a two-finger pinch, drag to pan, and double-click to reset. In 3D, dragging orbits and shift-drag pans. Zoom centres on the cursor, so you can point at a corner and wheel in.
+
+Parts and Sheet are drawn from the same path that is written to the SVG. Corner radii, tab fillets and micro-tab gaps therefore show at their true size once you zoom in, and each micro-tab is circled.
+
 ### 3D
 
 ![3D view](images/view-3d.png)

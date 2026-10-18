@@ -246,7 +246,7 @@ table.parts tr:nth-child(even) td{background:var(--sunk)}
       <span class="spacer"></span>
       <button type="button" class="tab" id="tabFr3" aria-selected="true" hidden>Frame</button>
       <button type="button" class="tab" id="tabDims" aria-selected="true">Dims</button>
-      <span class="hint" id="vhint">drag to orbit · shift-drag to pan · wheel to zoom</span>
+      <span class="hint" id="vhint">drag to orbit · shift-drag to pan · wheel to zoom · double-click to reset</span>
     </div>
     <canvas id="cv"></canvas>
   </div>
@@ -903,6 +903,34 @@ function run(){
    ============================================================ */
 const cv=$('cv'), ctx=cv.getContext('2d');
 let VIEW='3d', dpr=1, DIMS=true, FRAME3D=true;
+// 2-D views zoom and pan about their own fit: screen u -> c + (u - c)*k + p
+const Z2={stack:{k:1,px:0,py:0},parts:{k:1,px:0,py:0},sheet:{k:1,px:0,py:0},frame:{k:1,px:0,py:0}};
+let VW=1, VH=1;
+const ZZ=()=>Z2[VIEW]||{k:1,px:0,py:0};
+const zx=u=>VW/2+(u-VW/2)*ZZ().k+ZZ().px;
+const zy=u=>VH/2+(u-VH/2)*ZZ().k+ZZ().py;
+const zoomed=()=>{const z=ZZ(); return z.k!==1||z.px!==0||z.py!==0;};
+// keep the title line readable over zoomed content
+function band(w,h){ if(!zoomed()) return;
+  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--view').trim()||'#13161a';
+  ctx.globalAlpha=.88; ctx.fillRect(0,0,w,32); if(h) ctx.fillRect(0,h-32,w,32); ctx.globalAlpha=1; }
+// micro-tab marker: a dot when the gap is too small to see, a ring round the gap once it is
+function mtMark(x,y,s){
+  const p=STATE.p, g=s*(p.mtW+p.kerf);
+  ctx.strokeStyle=ctx.fillStyle='#e8b04a';
+  if(g<5){ ctx.globalAlpha=.8; ctx.beginPath(); ctx.arc(x,y,3,0,TAU); ctx.fill(); ctx.globalAlpha=1; }
+  else { ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(x,y,g*0.8+4,0,TAU); ctx.stroke(); }
+}
+// one part, drawn from the same path the SVG writes: fillets, and micro-tab gaps when on
+function drawPart(q,k,x0,y0,s,fill,stroke,lw){
+  const p=STATE.p, pts=partPts(q,k), r=Math.min(p.partR,(q.w+k)/2,(q.h+k)/2);
+  const closed=new Path2D(cutPath(pts,r,[],0).d);
+  const cut=p.mtOn ? new Path2D(cutPath(pts,r,bridgeEdges(q),p.mtW+p.kerf).d) : closed;
+  ctx.save(); ctx.translate(x0,y0); ctx.scale(s,s);
+  ctx.fillStyle=fill; ctx.fill(closed);
+  ctx.strokeStyle=stroke; ctx.lineWidth=lw/s; ctx.stroke(cut);
+  ctx.restore();
+}
 const cam={az:-0.62,el:0.95,zoom:1,panx:0,pany:0};
 function fit(){
   const r=cv.getBoundingClientRect();
@@ -927,6 +955,7 @@ function draw(){
   ctx.fillRect(0,0,cv.width,cv.height);
   ctx.save(); ctx.scale(dpr,dpr);
   const w=cv.width/dpr, h=cv.height/dpr;
+  VW=w; VH=h;
   if(VIEW==='3d') draw3D(w,h);
   else if(VIEW==='stack') drawStack(w,h);
   else if(VIEW==='parts') drawParts(w,h);
@@ -1110,9 +1139,9 @@ function drawStack(w,h){
   const wMax=Math.max(p.w2, p.shoe?shoeWidthAt(p,p.rOut):0);
   const _=0;
   const span=Math.max(wMax*1.5,(p.rOut-p.rIn)*1.2)+6;
-  const s=Math.min(w/span,(h-44)/span)*0.9;
-  const R=(p.rIn+p.rOut)/2;
-  const X=x=>w/2+x*s, Y=r=>h/2+14-(r-R)*s;
+  const s=Math.min(w/span,(h-44)/span)*0.9*ZZ().k;
+  const R=(p.rIn+p.rOut)/2, ox=zx(w/2), oy=zy(h/2+14);
+  const X=x=>ox+x*s, Y=r=>oy-(r-R)*s;
 
   // the stack, one band per part type
   for(const q of g.body){
@@ -1145,6 +1174,7 @@ function drawStack(w,h){
     ctx.setLineDash([1,3]); ctx.beginPath(); ctx.moveTo(X(wMax/2)+4,Y(r)); ctx.lineTo(xx+4,Y(r)); ctx.stroke(); ctx.setLineDash([]);
     lab(xx+9,Y(r)+4,txt,'#7c8892');
   }
+  band(w,h);
   lab(14,22,`Looking down the axis · ${g.n} sheets of ${p.t} mm in ${g.parts.length} width class${g.parts.length>1?'es':''} · ${(g.fill*100).toFixed(1)}% of the sector`,'#8d9aa4');
   legend(w,h,[['stack','#8fb9d2']].concat(p.aBody!=null?[['true sector','#e4b48a']]:[]).concat(p.shoe?[['shoe plates','#d7834f']]:[]));
 }
@@ -1155,22 +1185,17 @@ function drawParts(w,h){
   const rows=Math.ceil(n/cols);
   const cw=(w-24)/cols, ch=(h-52)/rows;
   const maxW=Math.max(...g.parts.map(q=>q.w)), maxH=Math.max(...g.parts.map(q=>q.h));
-  const s=Math.min((cw-14)/maxW,(ch-20)/maxH);
+  const s=Math.min((cw-14)/maxW,(ch-20)/maxH)*ZZ().k;
   g.parts.forEach((q,i)=>{
-    const cx=12+(i%cols)*cw, cy=36+Math.floor(i/cols)*ch;
+    const cx=zx(12+(i%cols)*cw), cy=zy(36+Math.floor(i/cols)*ch);
     const pw=q.w*s, ph=q.h*s;
-    ctx.fillStyle=q.kind==='S'?'rgba(215,131,79,.28)':'rgba(111,163,196,.28)';
-    ctx.strokeStyle=q.kind==='S'?'#d7834f':'#8fb9d2'; ctx.lineWidth=1;
-    const ol=outline(q,0);
-    if(ol){
-      ctx.beginPath();
-      ol.forEach(([a2,b2],j)=>{const xx=cx+a2*s, yy=cy+b2*s; j?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);});
-      ctx.closePath(); ctx.fill(); ctx.stroke();
-    } else { ctx.fillRect(cx,cy,pw,ph); ctx.strokeRect(cx,cy,pw,ph); }
-    if(p.mtOn) for(const [mx,my] of bridgeMarks(q,0)){
-      ctx.fillStyle='#e8b04a'; ctx.beginPath(); ctx.arc(cx+mx*s,cy+my*s,3,0,TAU); ctx.fill(); }
+    if(cx>w||cy>h||cx+pw<0||cy+ph+16<0) return;           // off screen while zoomed
+    drawPart(q,0,cx,cy,s, q.kind==='S'?'rgba(215,131,79,.28)':'rgba(111,163,196,.28)',
+             q.kind==='S'?'#d7834f':'#8fb9d2', 1);
+    if(p.mtOn) for(const [mx,my] of bridgeMarks(q,0)) mtMark(cx+mx*s,cy+my*s,s);
     lab(cx,cy+ph+12,`${q.kind==='S'?'S':''}${q.idx} · ${q.w.toFixed(2)}×${q.h.toFixed(0)} ×${q.qty*p.nTeeth}`,'#7d8a94');
   });
+  band(w);
   lab(14,22,`${n} part type${n>1?'s':''}, drawn to scale · widths ${Math.min(...g.parts.map(q=>q.w)).toFixed(2)}–${maxW.toFixed(2)} mm${p.ret?` over the tabs (body + 2 × ${p.tabD})`:''}`,'#8d9aa4');
 }
 
@@ -1180,25 +1205,19 @@ function drawSheet(w,h){
   const i=Math.min(+$('fileSel').value||0,nst.sheets.length-1);
   const sheet=nst.sheets[i];
   const SW=sheet.w||p.shW, SH=sheet.h||p.shH;
-  const s=Math.min((w-28)/SW,(h-56)/SH);
-  const ox=(w-SW*s)/2, oy=36;
+  const s0=Math.min((w-28)/SW,(h-56)/SH), s=s0*ZZ().k;
+  const ox=zx((w-SW*s0)/2), oy=zy(36);
   ctx.strokeStyle='#54616b'; ctx.lineWidth=1.4; ctx.strokeRect(ox,oy,SW*s,SH*s);
   for(const q of sheet.parts){
-    ctx.fillStyle=q.kind==='S'?'rgba(215,131,79,.30)':'rgba(111,163,196,.30)';
-    ctx.strokeStyle=q.kind==='S'?'#d7834f':'#8fb9d2'; ctx.lineWidth=.7;
     const x=ox+q.px*s, y=oy+q.py*s, pw=q.pw*s, ph=q.ph*s;
-    const ol=outline(q,p.kerf);
-    if(ol){
-      ctx.beginPath();
-      ol.forEach(([a2,b2],j)=>{
-        const xx=x+a2*s, yy=y+b2*s; j?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);});
-      ctx.closePath(); ctx.fill(); ctx.stroke();
-    } else { ctx.fillRect(x,y,pw,ph); ctx.strokeRect(x,y,pw,ph); }
-    if(p.mtOn) for(const [mx,my] of bridgeMarks(q,p.kerf)){
-      ctx.fillStyle='#e8b04a'; ctx.beginPath(); ctx.arc(x+mx*s,y+my*s,Math.max(1.5,Math.min(3,s*0.6)),0,TAU); ctx.fill(); }
+    if(x>w||y>h||x+pw<0||y+ph<0) continue;                 // off screen while zoomed
+    drawPart(q,p.kerf,x,y,s, q.kind==='S'?'rgba(215,131,79,.30)':'rgba(111,163,196,.30)',
+             q.kind==='S'?'#d7834f':'#8fb9d2', .8);
+    if(p.mtOn) for(const [mx,my] of bridgeMarks(q,p.kerf)) mtMark(x+mx*s,y+my*s,s);
     if(pw>16&&ph>10) lab(x+pw/2,y+ph/2+4,`${q.kind==='S'?'S':''}${q.idx}`,'#cfd8de','center');
   }
   const used=sheet.parts.reduce((a,q)=>a+q.pw*q.ph,0)/(SW*SH)*100;
+  band(w);
   lab(14,22,`${p.teeth} tooth${p.teeth>1?'s':''} · ${sheet.parts.length} parts · ${SW}×${SH} mm · ${used.toFixed(0)}% used`,'#8d9aa4');
   lab(w-14,22,`h along Y → rolling direction`+(p.mtOn?' · ● micro-tab':''),'#7d8a94','right');
 }
@@ -1216,8 +1235,8 @@ function drawFrame(w,h){
   const B=side?{x:w*0.5,y:top,w:w*0.5,h:avail}:{x:0,y:top+avail*0.56,w:w,h:avail*0.44};
 
   // --- top view, mating face up
-  const s=Math.min(A.w-28,A.h-14)/(2*F.rf2+2);
-  const cx=A.x+A.w/2, cy=A.y+A.h/2;
+  const s=Math.min(A.w-28,A.h-14)/(2*F.rf2+2)*ZZ().k;
+  const cx=zx(A.x+A.w/2), cy=zy(A.y+A.h/2);
   const X=x=>cx+x*s, Y=y=>cy-y*s;
   const sub=pts=>{pts.forEach(([x,y],i)=>i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y))); ctx.closePath();};
   ctx.beginPath();
@@ -1246,8 +1265,8 @@ function drawFrame(w,h){
   const zc=F.zc, gp=p.fGap, ht=F.halfT, rd=F.recD;
   const bodyZ0=zc-p.bodyH/2, bodyZ1=zc+p.bodyH/2;
   const labW=side?150:120, infoH=side?0:48;          // narrow: notes go above the section
-  const s2=Math.min((B.w-labW-24)/(2*xs+2), (B.h-26-infoH)/(p.h+2));
-  const ox=B.x+12+(B.w-labW-24)/2, oy=B.y+infoH+(B.h-infoH)/2+8;
+  const s2=Math.min((B.w-labW-24)/(2*xs+2), (B.h-26-infoH)/(p.h+2))*ZZ().k;
+  const ox=zx(B.x+12+(B.w-labW-24)/2), oy=zy(B.y+infoH+(B.h-infoH)/2+8);
   const SX=x=>ox+x*s2, SZ=z=>oy-(z-zc)*s2;
   const poly=(pts,fill,stroke)=>{ctx.beginPath();pts.forEach(([x,z],i)=>i?ctx.lineTo(SX(x),SZ(z)):ctx.moveTo(SX(x),SZ(z)));
     ctx.closePath(); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}};
@@ -1293,33 +1312,61 @@ function drawFrame(w,h){
   lab(tx,ty+15,`recess ${rd.toFixed(2)} · floor ${F.floorT.toFixed(2)}`,'#b2ac9e',al);
   lab(tx,ty+30,`faces stop ${gp} apart`,'#b2ac9e',al);
 
+  band(w,h);
   lab(14,22,`Frame half · mating face up · print two · Ø${(2*F.rf2).toFixed(0)} × ${F.halfT.toFixed(2)} mm${side?` · ${F.bolts.length} bolts`:''}`,'#8d9aa4');
   if(side) lab(w-14,22,`section at r ${rm.toFixed(1)}, looking outward`,'#7d8a94','right');
   else lab(14,38,`section at r ${rm.toFixed(1)}, looking outward`,'#7d8a94');
   legend(w,h,[['frame','#b2ac9e'],['recess','#6fa3c4'],['tooth','#8fb9d2'],['coil','#d77a45']]);
 }
 
-let drag=null;
+let drag=null, pinch=null;
+const PT=new Map();                                   // live touches, for two-finger zoom
+function zoomAt(z,k2,mx,my){ const f=k2/z.k; z.px=mx-VW/2-(mx-VW/2-z.px)*f; z.py=my-VH/2-(my-VH/2-z.py)*f; z.k=k2; }
 cv.addEventListener('pointerdown',e=>{
-  if(VIEW!=='3d') return;
+  PT.set(e.pointerId,[e.clientX,e.clientY]);
+  if(PT.size===2){
+    const [a,b]=[...PT.values()], r=cv.getBoundingClientRect();
+    pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1, k:VIEW==='3d'?cam.zoom:ZZ().k,
+           mx:(a[0]+b[0])/2-r.left, my:(a[1]+b[1])/2-r.top};
+    drag=null; cv.setPointerCapture(e.pointerId); return;
+  }
+  if(VIEW!=='3d'){ const z=ZZ(); drag={x:e.clientX,y:e.clientY,flat:true,px:z.px,py:z.py}; cv.setPointerCapture(e.pointerId); return; }
   drag={x:e.clientX,y:e.clientY,az:cam.az,el:cam.el,pan:e.shiftKey,px:cam.panx,py:cam.pany};
   cv.setPointerCapture(e.pointerId);
 });
 cv.addEventListener('pointermove',e=>{
+  if(PT.has(e.pointerId)) PT.set(e.pointerId,[e.clientX,e.clientY]);
+  if(pinch && PT.size>=2){
+    const [a,b]=[...PT.values()], f=Math.hypot(a[0]-b[0],a[1]-b[1])/pinch.d;
+    if(VIEW==='3d') cam.zoom=Math.max(.25,Math.min(9,pinch.k*f));
+    else zoomAt(ZZ(),Math.max(.5,Math.min(80,pinch.k*f)),pinch.mx,pinch.my);
+    draw(); return;
+  }
   if(!drag) return;
   const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+  if(drag.flat){ const z=ZZ(); z.px=drag.px+dx; z.py=drag.py+dy; draw(); return; }
   if(drag.pan){ cam.panx=drag.px+dx; cam.pany=drag.py+dy; }
   else { cam.az=drag.az+dx*.008; cam.el=Math.max(-1.45,Math.min(1.45,drag.el+dy*.006)); }
   draw();
 });
-addEventListener('pointerup',()=>{drag=null;});
+const lift=e=>{ PT.delete(e.pointerId); if(PT.size<2) pinch=null; drag=null; };
+addEventListener('pointerup',lift); addEventListener('pointercancel',lift);
 cv.addEventListener('wheel',e=>{
-  if(VIEW!=='3d') return;
   e.preventDefault();
+  if(VIEW!=='3d'){
+    const z=ZZ(), r=cv.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+    zoomAt(z,Math.max(.5,Math.min(80,z.k*(e.deltaY>0?.85:1/.85))),mx,my);   // the point under the cursor stays put
+    draw(); return;
+  }
   cam.zoom=Math.max(.25,Math.min(9,cam.zoom*(e.deltaY>0?.9:1.1)));
   draw();
 },{passive:false});
 
+cv.addEventListener('dblclick',()=>{
+  if(VIEW==='3d'){ cam.zoom=1; cam.panx=cam.pany=0; }
+  else { const z=ZZ(); z.k=1; z.px=z.py=0; }
+  draw();
+});
 $('tabDims').onclick=()=>{ DIMS=!DIMS; $('tabDims').setAttribute('aria-selected',String(DIMS)); draw(); };
 function syncTabs(){
   const fr=!!(STATE&&STATE.F);
@@ -1335,8 +1382,8 @@ function setView(v){
   $('tabStack').setAttribute('aria-selected',String(v==='stack'));
   $('tabParts').setAttribute('aria-selected',String(v==='parts'));
   $('tabSheet').setAttribute('aria-selected',String(v==='sheet'));
-  $('vhint').textContent = v==='3d' ? 'drag to orbit · shift-drag to pan · wheel to zoom'
-                         : v==='sheet' ? 'pick a sheet in the Output bar' : '';
+  $('vhint').textContent = v==='3d' ? 'drag to orbit · shift-drag to pan · wheel to zoom · double-click to reset'
+                         : 'wheel to zoom · drag to pan · double-click to reset';
   draw();
 }
 $('tab3D').onclick=()=>setView('3d');
