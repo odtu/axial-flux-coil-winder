@@ -18,6 +18,7 @@ A complete reference for the Lamination Cutter. For a short overview, see the [R
 10. [Output files](#10-output-files)
 11. [Warnings](#11-warnings)
 12. [Limitations](#12-limitations)
+13. [Wire EDM](#13-wire-edm)
 
 ---
 
@@ -58,7 +59,7 @@ In the parts and the SVG, **sheet X is the tangential width and sheet Y is the t
 1. **Define the stator** in panel 01, using the same numbers you give the winder.
 2. **Pick the sheet** in panel 02 and leave the width classes at 16 unless you have a reason to change them.
 3. **Decide on pole shoes** in panel 03. They are off by default.
-4. **Set up the laser** in panel 04: kerf, speed, engraving, and micro-tabs if you need them.
+4. **Choose the process** in panel 04. For the fibre laser, set the kerf, speed, engraving and micro-tabs. For wire EDM, the teeth are cut from a stacked block instead (see [§13](#13-wire-edm)).
 5. **Check the nest** in panel 05 and the Sheet view. One tooth per file is the default.
 6. **Optionally add the retention frame** in panel 06 if the teeth will be held by a printed frame.
 7. **Download** the SVG and the parts list, and the frame zip if you use one.
@@ -119,9 +120,11 @@ The number of sheets per tooth is `floor((r₂ − r₁) / t)`. Any remainder un
 
 See [§7](#7-pole-shoes) for which form to choose.
 
-### 04 — Cutting
+### 04 — Process
 
-![Cutting panel](images/panel-cutting.png)
+![Process panel, fibre laser](images/panel-cutting.png)
+
+**Method** is either *fibre laser, sheet by sheet* (the default) or *wire EDM, stacked block*. The fields below are for the laser. Choosing EDM swaps them for the EDM fields described in [§13](#13-wire-edm), and hides panel 05.
 
 | Field | Default | Meaning |
 |---|---|---|
@@ -135,6 +138,8 @@ See [§7](#7-pole-shoes) for which form to choose.
 | **Cut / Engrave colour** | red / blue | Stroke colours, for mapping to laser layers |
 
 ### 05 — Sheet
+
+Laser only.
 
 ![Sheet panel](images/panel-sheet.png)
 
@@ -428,6 +433,8 @@ On this small stator the inner bolt heads sit only 2.7 mm from the tooth, inside
 
 ## 10. Output files
 
+For the wire EDM files, see [§13](#edm-files).
+
 ### Laminations: `laminations_sheetNN.svg`
 
 - Units are millimetres: the `width` and `height` attributes are given in mm, and the viewBox matches them 1:1.
@@ -494,6 +501,9 @@ Extrude the through layers by the half thickness, then cut the recess layer to t
 | coil | error | Under 2 mm of tooth left for each coil half |
 | load | ok | Pull per tooth, total, per bolt, and tab bearing stress |
 | winding | ok | The coil space to enter in the winder |
+| block, layout, paths, orientation | ok | EDM: strip count and size, cut layout, how to read the paths, which face goes on the table |
+| taper | error / ok | EDM: the wire has to lean past the machine limit |
+| stack | warning | EDM: coated sheets conduct poorly through the stack |
 
 ---
 
@@ -506,6 +516,99 @@ Extrude the through layers by the half thickness, then cut the recess layer to t
 - **Simple nesting.** Rows of constant height, never rotated. That keeps the rolling direction right and the files predictable, at some cost in material on large fixed sheets.
 - **The frame is for prototypes.** Printed plastic creeps under constant load and heat. Re-check bolt preload after the first runs, and move to a bonded or potted stator for anything long-term.
 - **The time estimate is a lower bound.** It ignores travel, acceleration and the repeat passes a galvo engraver needs on steel.
+
+
+---
+
+## 13. Wire EDM
+
+Instead of cutting every sheet separately, you can stack long strips into one block and cut several whole teeth from it at once with a wire EDM.
+
+![EDM view: side view with the lean, top view with the wire paths](images/view-edm-shared.png)
+
+### How it works
+
+- **Strips.** Cut plain strips as wide as the tooth height H and as long as the block. Stack them to the radial length L = r₂ − r₁ (80 strips of 0.2 mm on the defaults) and clamp them. The stack direction is radial, exactly as in a laser-cut tooth.
+- **Tilted wire.** The wire runs through the stack, radially, and leans with each flank. Every sheet therefore comes out at its exact width, with no width classes and no staircase on the flanks. Each sheet edge is even bevelled to match.
+- **Head-to-tail.** Teeth alternate along the block: T1, T3, T5… have r₁ on the table, T2, T4, T6… have r₂. Neighbouring flanks then lean the same way, so one cut can be the right flank of one tooth and the left flank of the next.
+- **Flat faces.** The inner and outer faces are the bottom and top of the stack, so they are flat chords, the same as with the laser.
+
+The flank lean comes from the tooth geometry: `tan θ = (w₂ − w₁) / (2L)`, which is 7.44° on the default stator. Cuts alternate between +θ and −θ.
+
+### Panel 04 in EDM mode
+
+![Process panel, wire EDM](images/panel-process-edm.png)
+
+| Field | Default | Meaning |
+|---|---|---|
+| **Wire Ø** | 0.18 mm | Molybdenum wire on a typical fast-wire machine |
+| **Spark gap, per side** | 0.01 mm | The kerf is wire Ø + 2 × gap, 0.20 mm by default |
+| **Layout** | shared cuts | *shared*: one cut between neighbouring teeth. *separate*: two cuts per tooth, with scrap between |
+| **Teeth per block** | 12 | Teeth cut from one block. The tool works out how many blocks the stator needs |
+| ↳ **scrap web** | 0.5 mm | Separate layout only: steel left between two neighbouring cuts |
+| **Block end margin** | 3 mm | Stock beyond the first and last cut |
+| **Lead-in past strip** | 2 mm | Each cut starts and ends this far outside the strip, so no start holes are needed |
+| **Cutting rate** | 80 mm²/min | For the time estimate only. Measure it on your machine with a clamped stack |
+| **Machine taper limit** | 10° | The tool fails the job if any cut leans further than this |
+
+Many fast-wire machines manage ±6° as standard and more with a taper head, so check yours. Panel 02's width classes do not apply in EDM mode and are hidden.
+
+### Layouts
+
+| | Shared cuts | Separate cuts |
+|---|---|---|
+| Cuts per block | N + 1 | 2N |
+| Pitch | `(w₁ + w₂)/2 + kerf` | wider by two tab depths, one kerf and the scrap web |
+| Defaults (12 teeth) | 8.55 mm pitch, 110.7 mm block, 13 cuts, 91% steel yield, about 73 min | 13.25 mm pitch, 166.4 mm block, 24 cuts, 60% yield, about 154 min |
+| Retention tabs | Not possible | Yes |
+| Integrated pole shoes | Not possible | Yes |
+
+Shared cuts need straight flanks. Retention tabs and integrated pole shoes stick out into the neighbouring tooth, so with either of them on, the tool switches to separate cuts and says so in the notes.
+
+![EDM view with retention tabs: separate cuts](images/view-edm.png)
+
+**Pole shoes:**
+
+- **Integrated I-shapes** are cut in one go. The flange tips lean more than the body flanks (11.7° at a 0.8 face ratio), and the bottom and top contours carry both angles.
+- **Separate shoe plates** get a second block of their own: strips as wide as the shoe thickness, two plates per tooth. Toggle between the two blocks with the button in the view bar.
+
+### Preparing the block
+
+1. Cut `n = floor(L / t)` strips per block, of the size in the readouts (110.7 × 28 mm on the defaults). Deburr them and keep them flat.
+2. Stack them and clamp hard between two steel plates. Coated electrical steel conducts poorly from sheet to sheet, so put the wire's electrical contact on solid steel and expect a slower cut than on solid stock.
+3. Measure the clamped stack height. The program assumes it is L. If it differs, scale the top contour's height in your CAM.
+4. Put the block on the table with z = 0 down. That face is r₁ for T1, T3, T5…
+
+### EDM files
+
+| File | Contents |
+|---|---|
+| `edm_body_drawing.svg` | The operator's drawing: side view with the lean, top view with both contours, dimensions, and the cut table |
+| `edm_body_cuts.csv` | One row per cut: type, direction, taper, flank x at the bottom and top, path length, the teeth it separates |
+| `edm_body_top_bottom.dxf` | Both contours in one file. Layer `WIRE_BOTTOM_Z0` is the table side; layer `WIRE_TOP_Z16_00` is lifted to its true height, so a 3-D viewer shows the taper. Also has stock and tooth outlines |
+| `edm_body_bottom.dxf`, `edm_body_top.dxf` | One contour each, flat at z = 0, for CAM software (HF, AutoCut and similar) that loads the lower and upper shapes as two files for taper cutting |
+
+For separate shoe plates the same five files appear again with `edm_shoe_`. **All · zip** saves everything.
+
+![EDM operator drawing](images/edm-drawing.png)
+
+How to read the paths:
+
+- **Wire centre.** Every path is the wire centre, already offset by half the kerf, so set wire compensation to 0.
+- **Matching contours.** Each cut is an open polyline, and its bottom and top versions have the same number of vertices in the same order, so the CAM can pair them segment by segment.
+- **Serpentine order.** Cuts alternate up and down across the strip, so the wire never travels back empty.
+
+### After cutting
+
+- **Mark each tooth before it comes out.** Teeth leave the block as finished stacks, half of them upside down. Mark the r₁ face of each one first.
+- **Keep each tooth's sheets together.** They match only their own neighbours.
+- Deburr the flanks lightly. Then bond the tooth, or seat it in the retention frame.
+
+### Limits
+
+- **Flat faces.** The faces are still chords, so the sagitta is unchanged at 0.34 mm on the defaults.
+- **Clamping matters.** The stack must not shift during the cut, and the coating's poor conductivity is the main practical risk.
+- **The time estimate is rough.** It is the cut area divided by your rate, ignoring threading, travel and skim passes.
 
 ---
 

@@ -163,11 +163,12 @@ table.parts tr:nth-child(even) td{background:var(--sunk)}
     <legend><span class="n">02</span>Lamination</legend>
     <div class="row"><label for="t">Sheet thickness</label><input type="number" id="t" value="0.2" step="0.05" min="0.1"></div>
     <div class="row"><label for="sf">Stacking factor</label><input type="number" id="sf" value="0.96" step="0.01" min="0.5" max="1"></div>
-    <div class="row"><label for="groupMode">Widths</label><select id="groupMode">
+    <div class="row" id="rowGroupMode"><label for="groupMode">Widths</label><select id="groupMode">
       <option value="group">grouped into classes</option><option value="exact">one per sheet (exact)</option></select></div>
     <div class="row" id="rowGroups"><label for="groups">&nbsp;&nbsp;↳ classes</label><input type="number" id="groups" value="16" step="1" min="1"></div>
     <div class="row"><label for="partR">Part corner radius</label><input type="number" id="partR" value="0.3" step="0.1" min="0"></div>
-    <p class="sub">Adjacent sheets differ in width by less than the kerf, so cutting one per sheet is false precision. Grouping into classes collapses the part count and costs only a small flank error.</p>
+    <p class="sub" id="edmClassNote" hidden>With wire EDM every flank is cut on a true taper, so each sheet comes out at its exact width and width classes do not apply.</p>
+    <p class="sub" id="classNote">Adjacent sheets differ in width by less than the kerf, so cutting one per sheet is false precision. Grouping into classes collapses the part count and costs only a small flank error.</p>
   </fieldset>
 
   <fieldset>
@@ -186,7 +187,24 @@ table.parts tr:nth-child(even) td{background:var(--sunk)}
   </fieldset>
 
   <fieldset>
-    <legend><span class="n">04</span>Cutting</legend>
+    <legend><span class="n">04</span>Process</legend>
+    <div class="row"><label for="proc">Method</label><select id="proc">
+      <option value="laser">fibre laser, sheet by sheet</option><option value="edm">wire EDM, stacked block</option></select></div>
+    <div id="edmBox" hidden>
+      <div class="row"><label for="wireD">Wire Ø</label><input type="number" id="wireD" value="0.18" step="0.01" min="0.02"></div>
+      <div class="row"><label for="spark">Spark gap, per side</label><input type="number" id="spark" value="0.01" step="0.005" min="0"></div>
+      <div class="row"><label for="edmLayout">Layout</label><select id="edmLayout">
+        <option value="shared">shared cuts, head-to-tail</option><option value="separate">separate cuts per tooth</option></select></div>
+      <div class="row"><label for="perBlock">Teeth per block</label><input type="number" id="perBlock" value="12" step="1" min="1"></div>
+      <div class="row" id="rowWeb"><label for="web">&nbsp;&nbsp;↳ scrap web</label><input type="number" id="web" value="0.5" step="0.1" min="0"></div>
+      <div class="row"><label for="endM">Block end margin</label><input type="number" id="endM" value="3" step="0.5" min="0"></div>
+      <div class="row"><label for="lead">Lead-in past strip</label><input type="number" id="lead" value="2" step="0.5" min="0.2"></div>
+      <div class="row"><label for="rate">Cutting rate <span class="u">mm²/min</span></label><input type="number" id="rate" value="80" step="5" min="1"></div>
+      <div class="row"><label for="taperMax">Machine taper limit <span class="u">°</span></label><input type="number" id="taperMax" value="10" step="0.5" min="0.1"></div>
+      <div class="derived" id="edmOut"></div>
+      <p class="sub">Strips as wide as the tooth height are stacked to the radial length and clamped into one block. The wire runs through the stack and leans with each flank, so every sheet comes out at its exact width. Teeth alternate head-to-tail, so one cut can serve two teeth. Paths are wire-centre lines: set compensation to 0. Check your taper limit — many fast-wire machines manage ±6° as standard, more with a taper head.</p>
+    </div>
+    <div id="laserBox">
     <div class="row"><label for="kerf">Kerf width</label><input type="number" id="kerf" value="0.1" step="0.01" min="0"></div>
     <div class="row"><label for="speed">Cut speed <span class="u">m/min</span></label><input type="number" id="speed" value="8" step="0.5" min="0.1"></div>
     <label class="chk"><input type="checkbox" id="mtOn" checked> Micro-tabs — hold parts in the sheet</label>
@@ -197,9 +215,10 @@ table.parts tr:nth-child(even) td{background:var(--sunk)}
     <div class="row"><label for="cutCol">Cut colour</label><input type="color" id="cutCol" value="#ff0000"></div>
     <div class="row"><label for="engCol">Engrave colour</label><input type="color" id="engCol" value="#0000ff"></div>
     <p class="sub">Micro-tabs leave two small bridges of uncut steel per part, always on an edge with no job in the machine: the retention-tab tips, the flange tips, or the end faces. Outlines are offset outward by half the kerf. Digits are drawn as strokes, not text, so no font has to survive the trip into your laser software.</p>
+    </div>
   </fieldset>
 
-  <fieldset>
+  <fieldset id="fsSheet">
     <legend><span class="n">05</span>Sheet</legend>
     <div class="row"><label for="shW">Sheet width</label><input type="number" id="shW" value="200" step="10" min="20"></div>
     <div class="row"><label for="shH">Sheet height</label><input type="number" id="shH" value="200" step="10" min="20"></div>
@@ -243,7 +262,9 @@ table.parts tr:nth-child(even) td{background:var(--sunk)}
       <button type="button" class="tab" id="tabParts" aria-selected="false">Parts</button>
       <button type="button" class="tab" id="tabSheet" aria-selected="false">Sheet</button>
       <button type="button" class="tab" id="tabFrame" aria-selected="false" hidden>Frame</button>
+      <button type="button" class="tab" id="tabEdm" aria-selected="false" hidden>EDM</button>
       <span class="spacer"></span>
+      <button type="button" class="tab" id="tabEdmB" aria-selected="false" hidden>Shoe block</button>
       <button type="button" class="tab" id="tabFr3" aria-selected="true" hidden>Frame</button>
       <button type="button" class="tab" id="tabDims" aria-selected="true">Dims</button>
       <span class="hint" id="vhint">drag to orbit · shift-drag to pan · wheel to zoom · double-click to reset</span>
@@ -333,7 +354,13 @@ function readParams(){
     ringIn:cl(nv('ringIn',9),0), ringOut:cl(nv('ringOut',9),1), boltD:cl(nv('boltD',3.4),0),
     boltEvery:Math.max(1,Math.round(nv('boltEvery',1))), coilB:cl(nv('coilB',4),0),
     notchW:cl(nv('notchW',2.5),0), rib:$('ribOn').checked, Bg:cl(nv('Bg',0.8),0),
+    proc:$('proc').value, wireD:cl(nv('wireD',0.18),0.02), spark:cl(nv('spark',0.01),0),
+    edmLayout:$('edmLayout').value, perBlock:Math.max(1,Math.round(nv('perBlock',12))),
+    web:cl(nv('web',0.5),0), endM:cl(nv('endM',3),0), lead:cl(nv('lead',2),0.2),
+    rate:cl(nv('rate',80),1), taperMax:cl(nv('taperMax',10),0.1),
   };
+  // the wire cuts every flank true, so width classes do not apply
+  if(p.proc==='edm') p.groupMode='exact';
   const pitch=TAU/p.nTeeth;
   p.pitch=pitch;
   p.mode=$('wMode').value;
@@ -772,6 +799,233 @@ difference(){
 }
 
 /* ============================================================
+   wire EDM — long strips of width H are stacked to the radial
+   length L and clamped into a block. The wire runs through the
+   stack (radially) and is tilted, so each flank comes out as a
+   true taper: no width classes, no staircase. Teeth alternate
+   head-to-tail along the block, so neighbouring flanks lean the
+   same way and one cut can serve both.
+   Block coords: x along the strip, y across it (tooth height,
+   axial), z up the stack (radial). Paths are WIRE CENTRE lines.
+   ============================================================ */
+// right-hand side of one tooth at radius r, in tooth coords, bottom to top (y)
+function edmSide(spec,r,e){
+  const H=spec.H, hw=spec.half(r);
+  if(spec.kind==='T'){
+    const y1=(H-spec.tabH)/2, y2=y1+spec.tabH, d=spec.tabD;
+    return [[hw,-e],[hw,y1],[hw+d,y1],[hw+d,y2],[hw,y2],[hw,H+e]];
+  }
+  if(spec.kind==='I'){
+    const hs=Math.max(hw,spec.halfS(r)), ts=spec.ts;
+    return [[hs,-e],[hs,ts],[hw,ts],[hw,H-ts],[hs,H-ts],[hs,H+e]];
+  }
+  return [[hw,-e],[hw,H+e]];
+}
+// offset an open polyline to the right of its travel direction (material is on the left)
+function offsetRight(pts,d){
+  const n=pts.length, seg=[];
+  for(let i=0;i<n-1;i++){
+    const a=pts[i], b=pts[i+1], L=Math.hypot(b[0]-a[0],b[1]-a[1])||1;
+    const ux=(b[0]-a[0])/L, uy=(b[1]-a[1])/L, nx=uy, ny=-ux;
+    seg.push({a:[a[0]+nx*d,a[1]+ny*d], b:[b[0]+nx*d,b[1]+ny*d], ux, uy});
+  }
+  const out=[seg[0].a];
+  for(let i=0;i<seg.length-1;i++){
+    const s1=seg[i], s2=seg[i+1], den=s1.ux*s2.uy-s1.uy*s2.ux;
+    if(Math.abs(den)<1e-9){ out.push(s1.b); continue; }
+    const t=((s2.a[0]-s1.a[0])*s2.uy-(s2.a[1]-s1.a[1])*s2.ux)/den;
+    out.push([s1.a[0]+s1.ux*t, s1.a[1]+s1.uy*t]);
+  }
+  out.push(seg[seg.length-1].b);
+  return out;
+}
+function edmBlock(p,spec){
+  const kerf=p.wireD+2*p.spark, L=p.rOut-p.rIn, e=p.lead;
+  const m=Math.max(1,Math.min(spec.count,p.perBlock));
+  const shared = spec.shared;
+  // tooth k: even teeth have r1 on the table (z=0), odd teeth are turned over
+  const rb=k=>k%2?p.rOut:p.rIn, rt=k=>k%2?p.rIn:p.rOut;
+  const right=(k,r)=>offsetRight(edmSide(spec,r,e),kerf/2);                  // wire path, tooth coords
+  const left =(k,r)=>right(k,r).map(([x,y])=>[-x,y]);
+  const maxX=pts=>Math.max(...pts.map(q=>q[0]));
+  // centre-to-centre pitch
+  let P=0;
+  for(let k=0;k<Math.min(m,2)+1;k++){
+    const kb=k, kn=k+1;
+    for(const [ra,rn] of [[rb(kb),rb(kn)],[rt(kb),rt(kn)]]){
+      const need = shared ? spec.half(ra)+spec.half(rn)+kerf
+                          : maxX(right(kb,ra))+maxX(right(kn,rn))+kerf+p.web;
+      P=Math.max(P,need);
+    }
+  }
+  if(shared){                                     // flanks of neighbours must coincide exactly
+    const pb=spec.half(rb(0))+spec.half(rb(1))+kerf, pt=spec.half(rt(0))+spec.half(rt(1))+kerf;
+    P=(pb+pt)/2;
+  }
+  const cuts=[], teeth=[];
+  // place centres, then shift so the stock starts at x=0
+  const cx=[]; for(let k=0;k<m;k++) cx.push(k*P);
+  const sh=(pts,c)=>pts.map(([x,y])=>[x+c,y]);
+  const mk=(bot,top,label,tl,tr)=>({bot,top,label,tl,tr});
+  if(shared){
+    cuts.push(mk(sh(left(0,rb(0)),cx[0]), sh(left(0,rt(0)),cx[0]), 'end', null, 0));
+    for(let k=0;k<m;k++)
+      cuts.push(mk(sh(right(k,rb(k)),cx[k]), sh(right(k,rt(k)),cx[k]), k<m-1?'shared':'end', k, k<m-1?k+1:null));
+  } else {
+    for(let k=0;k<m;k++){
+      cuts.push(mk(sh(left(k,rb(k)),cx[k]),  sh(left(k,rt(k)),cx[k]),  'left',  null, k));
+      cuts.push(mk(sh(right(k,rb(k)),cx[k]), sh(right(k,rt(k)),cx[k]), 'right', k, null));
+    }
+  }
+  for(let k=0;k<m;k++) teeth.push({c:cx[k], rb:rb(k), rt:rt(k),
+    bot:edmSide(spec,rb(k),0), top:edmSide(spec,rt(k),0)});
+  // stock extent
+  let lo=Infinity, hi=-Infinity;
+  for(const c of cuts) for(const q of [...c.bot,...c.top]){ lo=Math.min(lo,q[0]); hi=Math.max(hi,q[0]); }
+  const shift=p.endM-lo;
+  for(const c of cuts){ c.bot=sh(c.bot,shift); c.top=sh(c.top,shift); }
+  for(const t of teeth) t.c+=shift;
+  const Lb=hi-lo+2*p.endM;
+  // serpentine: every other cut runs back down, top and bottom together
+  cuts.forEach((c,i)=>{ if(i%2){ c.bot.reverse(); c.top.reverse(); }
+    // taper of the longest run across the strip: the body flank
+    let jm=1, dm=-1;
+    for(let j=1;j<c.bot.length;j++){ const dy=Math.abs(c.bot[j][1]-c.bot[j-1][1]); if(dy>dm){dm=dy; jm=j;} }
+    c.flank=jm; c.taper=Math.atan2(c.top[jm][0]-c.bot[jm][0], L)*R2D;
+    let len=0; for(let j=1;j<c.bot.length;j++) len+=(Math.hypot(c.bot[j][0]-c.bot[j-1][0],c.bot[j][1]-c.bot[j-1][1])
+                                                   +Math.hypot(c.top[j][0]-c.top[j-1][0],c.top[j][1]-c.top[j-1][1]))/2;
+    c.len=len; c.inStock=Math.max(0,len-2*e);
+  });
+  const maxTaper=Math.max(...cuts.map(c=>Math.abs(c.taper)),
+                          ...cuts.map(c=>{let a=0;for(let j=1;j<c.bot.length;j++){ if(Math.abs(c.bot[j][1]-c.bot[j-1][1])>1e-9)
+                            a=Math.max(a,Math.abs(Math.atan2(c.top[j][0]-c.bot[j][0],L))*R2D);} return a;}));
+  const area=cuts.reduce((a,c)=>a+c.inStock,0)*L;                 // mm² of wire cut
+  const toothArea=m*(spec.half(p.rIn)+spec.half(p.rOut))*L;       // side-view steel kept
+  return {name:spec.name, spec, H:spec.H, L, kerf, m, P, cuts, teeth, Lb, shared,
+          blocks:Math.ceil(spec.count/m), lastM:spec.count-(Math.ceil(spec.count/m)-1)*m,
+          area, time:area/p.rate, maxTaper, yield:toothArea/(Lb*L), n:Math.max(1,Math.floor(L/p.t))};
+}
+function edmGeom(p){
+  if(p.proc!=='edm') return null;
+  const half=r=>widthAt(p,r)/2, halfS=r=>shoeWidthAt(p,r)/2;
+  const kind = p.integrated ? 'I' : p.ret ? 'T' : 'P';
+  const body={name:'body', count:p.nTeeth, kind, half, halfS, ts:p.shoeT,
+              H: p.integrated ? p.h : p.bodyH, tabH:p.tabH, tabD:p.tabD,
+              shared: p.edmLayout==='shared' && kind==='P'};
+  const out={blocks:[edmBlock(p,body)], forced: p.edmLayout==='shared' && kind!=='P', kind};
+  if(p.shoe && !p.integrated)
+    out.blocks.push(edmBlock(p,{name:'shoe', count:2*p.nTeeth, kind:'P', half:halfS, H:p.shoeT,
+                                shared:p.edmLayout==='shared'}));
+  return out;
+}
+
+// ---- EDM files
+function edmDXF(p,B,which){
+  const L=[], w=(c,v)=>L.push(String(c),String(v));
+  const zt=B.L, lb=`WIRE_BOTTOM_Z0`, lt=`WIRE_TOP_Z${B.L.toFixed(2).replace('.','_')}`;
+  const layers = which==='bottom' ? [[lb,1]] : which==='top' ? [[lt,5]]
+               : [[lb,1],[lt,5],['STOCK',8],['TEETH_BOTTOM',3],['TEETH_TOP',4]];
+  w(0,'SECTION');w(2,'HEADER');w(9,'$ACADVER');w(1,'AC1009');w(9,'$INSUNITS');w(70,4);w(0,'ENDSEC');
+  w(0,'SECTION');w(2,'TABLES');w(0,'TABLE');w(2,'LAYER');w(70,layers.length);
+  for(const [n,c] of layers){w(0,'LAYER');w(2,n);w(70,0);w(62,c);w(6,'CONTINUOUS');}
+  w(0,'ENDTAB');w(0,'ENDSEC');
+  w(0,'SECTION');w(2,'ENTITIES');
+  const poly=(pts,l,closed,z)=>{ w(0,'POLYLINE');w(8,l);w(66,1);w(10,0);w(20,0);w(30,z||0);w(70,closed?1:0);
+    for(const [x,y] of pts){w(0,'VERTEX');w(8,l);w(10,fmt(x));w(20,fmt(y));w(30,fmt(z||0));}
+    w(0,'SEQEND');w(8,l); };
+  // combined file: top contour lifted to its true height, so a 3-D viewer shows the taper
+  const zTop = which==='combined' ? zt : 0;
+  if(which!=='top')    for(const c of B.cuts) poly(c.bot,lb,false,0);
+  if(which!=='bottom') for(const c of B.cuts) poly(c.top,lt,false,zTop);
+  if(which==='combined'){
+    poly([[0,0],[B.Lb,0],[B.Lb,B.H],[0,B.H]],'STOCK',true,0);
+    for(const t of B.teeth){
+      const out=(side)=>{ const R=side.filter(q=>q[1]>=0&&q[1]<=B.H).map(([x,y])=>[t.c+x,y]);
+                          return [...R, ...R.slice().reverse().map(([x,y])=>[2*t.c-x,y])]; };
+      poly(out(t.bot),'TEETH_BOTTOM',true,0); poly(out(t.top),'TEETH_TOP',true,zTop);
+    }
+  }
+  w(0,'ENDSEC');w(0,'EOF');
+  return L.join('\n')+'\n';
+}
+function edmCSV(p,B){
+  const rows=[['cut','type','direction','taper_deg','x_bottom_mm','x_top_mm','path_mm','separates']];
+  B.cuts.forEach((c,i)=>{
+    const s=c.flank;
+    rows.push([i+1,c.label,i%2?'down':'up',c.taper.toFixed(3),fmt(c.bot[s][0]),fmt(c.top[s][0]),c.len.toFixed(2),
+      [c.tl!=null?`T${c.tl+1}`:'',c.tr!=null?`T${c.tr+1}`:''].filter(Boolean).join('|')]);
+  });
+  return rows.map(r=>r.join(',')).join('\n')+'\n';
+}
+
+const fmtMin=m=>m<90?`${m.toFixed(0)} min`:`${(m/60).toFixed(1)} h`;
+function edmNotes(p,E,add){
+  const B=E.blocks[0], a=Math.abs(B.cuts[0].taper), mx=Math.max(...E.blocks.map(b=>b.maxTaper));
+  add('ok','block',`Stack ${B.n} strips, ${B.Lb.toFixed(1)} × ${B.H.toFixed(1)} mm, to ${B.L.toFixed(2)} mm and clamp them as one block. A block makes ${B.m} teeth; cut ${B.blocks} block${B.blocks>1?'s':''}`+
+    (B.lastM<B.m?`, and stop the last one after tooth ${B.lastM}.`:'.'));
+  if(mx>p.taperMax) add('bad','taper',`The wire has to lean ${mx.toFixed(2)}°, past the ${p.taperMax}° your machine allows. Fewer teeth, a narrower tooth, or a taper head would fix it.`);
+  else add('ok','taper',`Flanks lean ±${a.toFixed(2)}°, alternating cut to cut. Every sheet comes out at its exact width, so there are no width classes and no flank staircase.`);
+  if(E.forced) add('warn','layout',`Shared cuts need straight flanks, and ${E.kind==='T'?'the retention tabs':'the pole shoes'} would cut into the neighbouring tooth. Each tooth gets its own two cuts instead, with ${p.web} mm of scrap between them.`);
+  else if(B.shared) add('ok','layout',`${B.cuts.length} cuts for ${B.m} teeth: every inner cut is the right flank of one tooth and the left flank of the next, so only one kerf is lost between them.`);
+  else add('ok','layout',`Two cuts per tooth, ${B.cuts.length} per block, with ${p.web} mm of scrap between neighbours.`);
+  add('ok','paths',`The DXF paths are wire-centre lines, already offset by half the ${B.kerf.toFixed(3)} mm kerf, so set wire compensation to 0. The bottom contour is the table side (z = 0), the top contour is at z = ${B.L.toFixed(2)} mm. Each cut starts and ends ${p.lead} mm outside the strip, so no start holes are needed.`);
+  add('ok','orientation',`Teeth alternate head-to-tail: T1, T3, T5… have r₁ on the table, T2, T4, T6… have r₂. Mark the r₁ face of each tooth before it drops out.`);
+  add('warn','stack',`Coated laminations conduct poorly from sheet to sheet. Clamp the stack hard between steel plates with the wire contact on solid steel, and expect it to cut slower than solid stock. The time estimate assumes ${p.rate} mm²/min.`);
+  if(E.blocks[1]) add('ok','shoes',`Shoe plates are a second block: ${E.blocks[1].n} strips, ${E.blocks[1].Lb.toFixed(1)} × ${E.blocks[1].H.toFixed(1)} mm, making ${E.blocks[1].m} plates per block (two per tooth).`);
+  if(p.mtOn) add('ok','micro-tabs',`Micro-tabs are a laser option and are ignored for EDM. Hold the teeth with the machine's own last-cut or clamp strategy.`);
+}
+// dimensioned drawing for the operator: side view (shows the taper), top view (shows the paths), cut table
+function edmDrawingSVG(p,B,E){
+  const m=12, L=B.L, H=B.H, W=Math.max(B.Lb,150), sv=m+14, tv=sv+L+22, tbl=tv+H+2*p.lead+22;
+  const rows=B.cuts.length, colW=46, perCol=Math.max(1,Math.ceil(rows/Math.max(1,Math.floor((W+2*m-10)/colW))));
+  const TH=perCol*4.2+8;
+  const totW=W+2*m+22, totH=tbl+TH+14;
+  const X=x=>m+x, Zs=z=>sv+L-z, Yt=y=>tv+p.lead+H-y;   // y up in the top view
+  const t=(x,y,s,a,sz,c)=>`<text x="${fmt(x)}" y="${fmt(y)}" font-size="${sz||2.6}" text-anchor="${a||'start'}" fill="${c||'#222'}" font-family="monospace">${s}</text>`;
+  const ln=(a,b,c,d,st)=>`<line x1="${fmt(a)}" y1="${fmt(b)}" x2="${fmt(c)}" y2="${fmt(d)}" ${st||'stroke="#222" stroke-width="0.15"'}/>`;
+  const pl=(pts,st)=>`<polyline points="${pts.map(q=>fmt(q[0])+','+fmt(q[1])).join(' ')}" fill="none" ${st}/>`;
+  const o=[];
+  o.push(t(m,6,`WIRE EDM — ${B.name==='body'?'tooth':'shoe plate'} block · ${B.m} per block · ${B.blocks} block${B.blocks>1?'s':''}`,'start',3.4));
+  o.push(t(m,10.5,`r1 ${p.rIn} r2 ${p.rOut} N ${p.nTeeth} · strips ${B.n} × ${B.Lb.toFixed(2)} × ${B.H.toFixed(2)} × ${p.t} mm · kerf ${B.kerf.toFixed(3)} (wire ${p.wireD} + 2×${p.spark}) · paths are wire centre, compensation 0`,'start',2.2,'#444'));
+  // side view: x along the block, z up the stack
+  o.push(t(m,sv-3,'SIDE VIEW — wire tilts in this plane','start',2.4,'#555'));
+  o.push(`<rect x="${X(0)}" y="${Zs(L)}" width="${fmt(B.Lb)}" height="${fmt(L)}" fill="#eef1f4" stroke="#888" stroke-width="0.2"/>`);
+  B.teeth.forEach((th,k)=>{
+    const hb=B.spec.half(th.rb), ht=B.spec.half(th.rt);
+    o.push(`<polygon points="${[[th.c-hb,0],[th.c+hb,0],[th.c+ht,L],[th.c-ht,L]].map(([x,z])=>fmt(X(x))+','+fmt(Zs(z))).join(' ')}" fill="#c9d9e6" stroke="none"/>`);
+    o.push(t(X(th.c),Zs(L/2)+1,`T${k+1}`,'middle',2.4));
+    o.push(t(X(th.c),Zs(0)-1,th.rb===p.rIn?'r1':'r2','middle',1.8,'#555'));
+  });
+  B.cuts.forEach((c,i)=>{ const j=c.flank;
+    o.push(ln(X(c.bot[j][0]),Zs(0),X(c.top[j][0]),Zs(L),'stroke="#d00" stroke-width="0.25"'));
+    o.push(t(X(c.top[j][0]),Zs(L)-1.2,String(i+1),'middle',1.9,'#d00')); });
+  o.push(ln(X(0),Zs(0)+4,X(B.Lb),Zs(0)+4)); o.push(t(X(B.Lb/2),Zs(0)+7.5,`${B.Lb.toFixed(2)}`,'middle',2.4));
+  o.push(ln(X(B.Lb)+3,Zs(0),X(B.Lb)+3,Zs(L))); o.push(t(X(B.Lb)+4,Zs(L/2)+1,`L ${L.toFixed(2)}`,'start',2.4));
+  // top view: x along the block, y across the strip; bottom paths solid, top dashed
+  o.push(t(m,tv-3,'TOP VIEW — red: bottom contour (table, z = 0) · blue dashed: top contour (z = L)','start',2.4,'#555'));
+  o.push(`<rect x="${X(0)}" y="${fmt(Yt(H))}" width="${fmt(B.Lb)}" height="${fmt(H)}" fill="#f4f4f0" stroke="#888" stroke-width="0.2"/>`);
+  for(const c of B.cuts){
+    o.push(pl(c.bot.map(([x,y])=>[X(x),Yt(y)]),'stroke="#d00" stroke-width="0.22"'));
+    o.push(pl(c.top.map(([x,y])=>[X(x),Yt(y)]),'stroke="#05f" stroke-width="0.18" stroke-dasharray="1 0.7"'));
+  }
+  o.push(ln(X(B.Lb)+3,Yt(0),X(B.Lb)+3,Yt(H))); o.push(t(X(B.Lb)+4,Yt(H/2)+1,`H ${H.toFixed(2)}`,'start',2.4));
+  if(B.teeth.length>1){ const a=B.teeth[0].c, b=B.teeth[1].c;
+    o.push(ln(X(a),Yt(0)+3,X(b),Yt(0)+3)); o.push(t(X((a+b)/2),Yt(0)+6.2,`pitch ${B.P.toFixed(3)}`,'middle',2.2)); }
+  // cut table
+  o.push(t(m,tbl,'CUTS — x of the flank at the bottom and top contour, taper + leans toward +x going up','start',2.4,'#555'));
+  B.cuts.forEach((c,i)=>{ const col=Math.floor(i/perCol), row=i%perCol, j=c.flank;
+    o.push(t(m+col*colW,tbl+5+row*4.2,`${String(i+1).padStart(2,' ')} ${i%2?'dn':'up'} ${c.taper>=0?'+':''}${c.taper.toFixed(3)}° ${c.bot[j][0].toFixed(2)}/${c.top[j][0].toFixed(2)}`,'start',2.1)); });
+  o.push(t(m,totH-6,`Clamp the stack between steel plates; coated sheets conduct poorly. Mark the r1 face of every tooth: T1, T3… have r1 on the table.`,'start',2.1,'#444'));
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="${fmt(totW)}mm" height="${fmt(totH)}mm" viewBox="0 0 ${fmt(totW)} ${fmt(totH)}">
+  <title>Wire EDM block — ${B.name}</title>
+  <rect width="100%" height="100%" fill="#fff"/>
+  ${o.join('\n  ')}
+</svg>
+`;
+}
+
+/* ============================================================
    main
    ============================================================ */
 let STATE=null;
@@ -780,7 +1034,10 @@ function run(){
   $('rowRatio').hidden=p.mode!=='ratio';
   $('rowAngle').hidden=p.mode!=='angle';
   $('rowWIn').hidden=$('rowWOut').hidden=p.mode!=='widths';
-  $('rowGroups').hidden=p.groupMode==='exact';
+  const edm=p.proc==='edm';
+  $('laserBox').hidden=edm; $('edmBox').hidden=!edm; $('fsSheet').hidden=edm;
+  $('rowGroupMode').hidden=edm; $('edmClassNote').hidden=!edm; $('classNote').hidden=edm;
+  $('rowGroups').hidden=edm||p.groupMode==='exact';
   $('rowMt').hidden=!p.mtOn;
   $('shoeBox').hidden=!p.shoe; $('shoeOff').hidden=p.shoe;
   $('shoeIntNote').hidden=!p.integrated; $('shoeSepNote').hidden=p.integrated||!p.shoe;
@@ -793,7 +1050,31 @@ function run(){
   const frameFiles=F?[{name:'frame_half.svg',text:frameSVG(p,F)},
                       {name:'frame_half.dxf',text:frameDXF(p,F)},
                       {name:'frame_half.scad',text:frameSCAD(p,F)}]:[];
-  STATE={p,g,nst,files,F,frameFiles};
+  const E=edmGeom(p);
+  if(E){
+    files.length=0;
+    for(const B of E.blocks){
+      const pre=`edm_${B.name}_`;
+      files.push({name:pre+'drawing.svg',text:edmDrawingSVG(p,B,E)},
+                 {name:pre+'cuts.csv',text:edmCSV(p,B)},
+                 {name:pre+'top_bottom.dxf',text:edmDXF(p,B,'combined')},
+                 {name:pre+'bottom.dxf',text:edmDXF(p,B,'bottom')},
+                 {name:pre+'top.dxf',text:edmDXF(p,B,'top')});
+    }
+  }
+  STATE={p,g,nst,files,F,frameFiles,E};
+  $('tabParts').hidden=$('tabSheet').hidden=edm; $('tabEdm').hidden=!edm;
+  $('tabEdmB').hidden=!(edm&&VIEW==='edm'&&E.blocks.length>1);
+  if(edm && (VIEW==='parts'||VIEW==='sheet')) setView('edm');
+  if(!edm && VIEW==='edm') setView('3d');
+  $('btnCsv').hidden=edm; $('btnSave').textContent=edm?'Download':'Download SVG';
+  $('rowWeb').hidden=!(edm&&!E.blocks[0].shared);
+  if(E){ const B=E.blocks[0];
+    $('edmOut').innerHTML=`flanks lean <b>±${Math.abs(B.cuts[0].taper).toFixed(2)}°</b> · kerf ${B.kerf.toFixed(3)} mm<br>`+
+      `pitch ${B.P.toFixed(3)} mm · ${B.m} teeth, ${B.cuts.length} cuts per block<br>`+
+      `block <b>${B.Lb.toFixed(1)} × ${B.H.toFixed(1)} × ${B.L.toFixed(1)}</b> mm · ${B.blocks} block${B.blocks>1?'s':''}`+
+      (E.blocks[1]?`<br>shoe plates: second block, ${E.blocks[1].Lb.toFixed(1)} × ${E.blocks[1].H.toFixed(1)} mm`:'');
+  }
   $('btnFrame').hidden=!F;
   $('tabFrame').hidden=!retUI;
   syncTabs();
@@ -814,7 +1095,21 @@ function run(){
   const runs=Math.ceil(p.nTeeth/p.teeth);
   const massAll=g.sheetArea*p.t*p.nTeeth/1e9*DENS*1000;
   const cutFile=g.cutLen*p.teeth/1000;
-  $('readouts').innerHTML=[
+  const EB=E&&E.blocks[0];
+  $('readouts').innerHTML=(E?[
+    ['Strips / block',EB.n,''],
+    ['Strip size',`${EB.Lb.toFixed(0)}×${EB.H.toFixed(0)}`,'mm'],
+    ['Teeth / block',EB.m,''],
+    ['Blocks',E.blocks.reduce((a,B)=>a+B.blocks,0),''],
+    ['Taper',Math.abs(EB.cuts[0].taper).toFixed(2),'°'],
+    ['Max lean',Math.max(...E.blocks.map(B=>B.maxTaper)).toFixed(2),'°'],
+    ['Cuts / block',EB.cuts.length,''],
+    ['Kerf',EB.kerf.toFixed(3),'mm'],
+    ['Cut area',(E.blocks.reduce((a,B)=>a+B.area*B.blocks,0)/100).toFixed(0),'cm²'],
+    ['Wire time',fmtMin(E.blocks.reduce((a,B)=>a+B.time*B.blocks,0)),''],
+    ['Steel yield',(EB.yield*100).toFixed(0),'%'],
+    ['Flank error','0','true taper'],
+  ]:[
     ['Sheets / tooth',g.perTooth,''],
     ['Part types',g.parts.length,''],
     ['Of each type',g.parts.length?Math.round(g.perTooth/g.parts.length):0,'per tooth'],
@@ -827,35 +1122,37 @@ function run(){
     ['Cut / run',cutFile.toFixed(1),'m'],
     ['Time / run',(cutFile/p.speed).toFixed(1),'min'],
     ['Steel, stator',massAll.toFixed(0),'g'],
+  ]).concat([
     ...(F?[['Coil space',F.coilSpace.toFixed(2),'mm / half'],
            ['Frame Ø',(2*F.rf2).toFixed(0),'mm'],
            ['Pull / tooth',F.fTooth.toFixed(0),'N']]:[]),
-  ].map(([k,v,u])=>`<div class="ro"><dt>${k}</dt><dd>${v}<s>${u}</s></dd></div>`).join('');
+  ]).map(([k,v,u])=>`<div class="ro"><dt>${k}</dt><dd>${v}<s>${u}</s></dd></div>`).join('');
 
   const ns=[];
   const add=(k,t,txt)=>ns.push(`<div class="note n-${k}"><span class="k">${t}</span><span class="t">${esc(txt)}</span></div>`);
   if(p.rIn>=p.rOut) add('bad','geometry','Inner radius must be smaller than the outer radius.');
   if(p.mode!=='widths' && 2*p.aBody>=p.pitch) add('bad','geometry',`A ${(2*p.aBody*R2D).toFixed(1)}° tooth does not fit a ${(360/p.nTeeth).toFixed(1)}° slot pitch.`);
   if(p.w2>=TAU*p.rOut/p.nTeeth) add('bad','geometry',`Tooth is ${p.w2.toFixed(2)} mm wide at r₂ but the slot pitch there is only ${(TAU*p.rOut/p.nTeeth).toFixed(2)} mm.`);
-  if(p.fitMode==='fixed' && nst.sheets.length>1){
+  if(!edm && p.fitMode==='fixed' && nst.sheets.length>1){
     const last=nst.sheets[nst.sheets.length-1].parts.length, full=nst.sheets[0].parts.length;
     if(last<=Math.max(2,full*0.1)) add('warn','sheet',`The last sheet holds only ${last} part${last>1?'s':''}. A slightly smaller edge margin or part spacing, or a larger sheet, would save a whole file per run.`);
   }
-  if(nst.oversize) add('bad','sheet','A part is larger than the usable sheet. Increase the sheet size or reduce the margin.');
+  if(!edm && nst.oversize) add('bad','sheet','A part is larger than the usable sheet. Increase the sheet size or reduce the margin.');
 
   const step=Math.abs(p.w2-p.w1)/Math.max(1,g.n-1);
-  if(p.groupMode==='exact' && step<p.kerf)
+  if(edm) edmNotes(p,E,add);
+  else if(p.groupMode==='exact' && step<p.kerf)
     add('warn','grouping',`Exact widths means ${g.n} part types differing by ${step.toFixed(3)} mm — finer than the ${p.kerf} mm kerf, so the distinction is not real. Group them into classes instead.`);
   else if(p.groupMode!=='exact')
     add('ok','grouping',`${g.parts.length} part types, ${Math.round(g.perTooth*p.teeth/g.parts.length)} of each. Worst flank error ${g.maxErr.toFixed(3)} mm per side.`);
 
-  if(g.maxErr>p.t*2) add('warn','flank',`Flank error ${g.maxErr.toFixed(3)} mm is over two sheet thicknesses. Add width classes if the slot is tight.`);
+  if(!edm && g.maxErr>p.t*2) add('warn','flank',`Flank error ${g.maxErr.toFixed(3)} mm is over two sheet thicknesses. Add width classes if the slot is tight.`);
   if(g.sag>0.1) add('warn','faces',`Flat inner and outer faces sit ${g.sag.toFixed(2)} mm inside the true arc at r₂ — that is the trapezoidal approximation, and it is why iron fill stops at ${(g.fill*100).toFixed(1)}%.`);
   if(g.build < (p.rOut-p.rIn)-p.t) add('warn','build',`Stack is ${((p.rOut-p.rIn)-g.build).toFixed(2)} mm short of the full radial length — the remainder is less than one sheet.`);
   if(p.integrated) add('warn','shoes',`Integrated shoes close the slot, so the coil cannot be needle-wound onto the tooth. Wind it by hand, or wind a bobbin coil and build the stack up inside it.`);
   else if(p.shoe) add('warn','shoes',`Shoe plates (prefix S) cap each end and are cut separately; the body laminations are ${p.bodyH.toFixed(1)} mm tall to make room. Wind every tooth first — once the shoes are on, no coil will pass.`);
-  add('ok','runs',`One file holds ${p.teeth} tooth${p.teeth>1?'s':''}. Run it ${runs} time${runs>1?'s':''} on fresh material for the full ${p.nTeeth}-tooth stator.`);
-  if(p.mtOn){
+  if(!edm) add('ok','runs',`One file holds ${p.teeth} tooth${p.teeth>1?'s':''}. Run it ${runs} time${runs>1?'s':''} on fresh material for the full ${p.nTeeth}-tooth stator.`);
+  if(p.mtOn && !edm){
     const where = g.parts.some(q=>q.tab) ? 'on the tip of each retention tab, where the stub sits in the recess clearance'
                 : p.integrated ? 'on two opposite flange tips — the slot-opening sides'
                 : 'mid-way along both end faces, where the stubs line up across the stack and one pass with a file dresses them all';
@@ -865,7 +1162,7 @@ function run(){
       : `Two ${p.mtW} mm bridges per part, ${where}. Never on a flank — that is the coil face and the frame-pocket fit.`+
         (p.shoe&&!p.integrated?' Shoe plates are held at their two short ends.':''));
   }
-  if(p.kerf<=0) add('warn','kerf','Kerf is zero, so parts cut undersize by the true beam width. Measure it on a test piece.');
+  if(!edm && p.kerf<=0) add('warn','kerf','Kerf is zero, so parts cut undersize by the true beam width. Measure it on a test piece.');
   if(p.retBlocked) add('bad','frame','The frame halves drop on from each end of the tooth, and an integrated pole shoe is wider than the pocket they have to pass. Use separate shoe plates, bonded on after winding, or turn the frame off.');
   if(F){
     if(F.recD<=0.05) add('bad','frame',`The clamp gap leaves no recess for the tab. Make the gap smaller than the ${p.tabH} mm tab.`);
@@ -888,8 +1185,15 @@ function run(){
   sel.innerHTML=files.map((f,i)=>`<option value="${i}">${f.name}</option>`).join('');
   sel.value=(keep&&+keep<files.length)?keep:0;
   $('btnAll').hidden=files.length<2;
-  $('meta').textContent=`${files.length} sheet${files.length>1?'s':''} · ${p.shW}×${p.shH} mm`;
+  $('meta').textContent= E ? `${files.length} files · ${E.blocks.map(B=>`${B.name} ${B.Lb.toFixed(0)}×${B.H.toFixed(0)}×${B.L.toFixed(0)} mm`).join(' · ')}`
+                            : `${files.length} sheet${files.length>1?'s':''} · ${p.shW}×${p.shH} mm`;
 
+  if(E){
+    $('ptable').innerHTML=`<thead><tr><th>Cut</th><th>Block</th><th>Type</th><th>Dir</th><th>Taper °</th><th>x bottom</th><th>x top</th><th>Separates</th></tr></thead><tbody>`+
+      E.blocks.flatMap(B=>B.cuts.map((c,i)=>`<tr><td>${i+1}</td><td>${B.name}</td><td>${c.label}</td><td>${i%2?'down':'up'}</td>`+
+        `<td>${c.taper>=0?'+':''}${c.taper.toFixed(3)}</td><td>${c.bot[c.flank][0].toFixed(3)}</td><td>${c.top[c.flank][0].toFixed(3)}</td>`+
+        `<td>${[c.tl!=null?'T'+(c.tl+1):'',c.tr!=null?'T'+(c.tr+1):''].filter(Boolean).join(' | ')}</td></tr>`)).join('')+`</tbody>`;
+  } else
   $('ptable').innerHTML=
     `<thead><tr><th>Part</th><th>Width</th><th>Height</th><th>r from</th><th>r to</th><th>Per tooth</th><th>Total</th><th>± err</th></tr></thead><tbody>`+
     g.parts.map(q=>`<tr><td>${q.kind==='S'?'S':''}${q.idx}</td><td>${q.w.toFixed(2)}</td><td>${q.h.toFixed(2)}</td>`+
@@ -904,7 +1208,7 @@ function run(){
 const cv=$('cv'), ctx=cv.getContext('2d');
 let VIEW='3d', dpr=1, DIMS=true, FRAME3D=true;
 // 2-D views zoom and pan about their own fit: screen u -> c + (u - c)*k + p
-const Z2={stack:{k:1,px:0,py:0},parts:{k:1,px:0,py:0},sheet:{k:1,px:0,py:0},frame:{k:1,px:0,py:0}};
+const Z2={stack:{k:1,px:0,py:0},parts:{k:1,px:0,py:0},sheet:{k:1,px:0,py:0},frame:{k:1,px:0,py:0},edm:{k:1,px:0,py:0}};
 let VW=1, VH=1;
 const ZZ=()=>Z2[VIEW]||{k:1,px:0,py:0};
 const zx=u=>VW/2+(u-VW/2)*ZZ().k+ZZ().px;
@@ -960,6 +1264,7 @@ function draw(){
   else if(VIEW==='stack') drawStack(w,h);
   else if(VIEW==='parts') drawParts(w,h);
   else if(VIEW==='frame') drawFrame(w,h);
+  else if(VIEW==='edm') drawEdm(w,h);
   else drawSheet(w,h);
   ctx.restore();
 }
@@ -1319,6 +1624,51 @@ function drawFrame(w,h){
   legend(w,h,[['frame','#b2ac9e'],['recess','#6fa3c4'],['tooth','#8fb9d2'],['coil','#d77a45']]);
 }
 
+/* ---- wire EDM: side view shows the lean, top view shows the paths ---- */
+let EDMB=0;
+function drawEdm(w,h){
+  const {p,E}=STATE;
+  if(!E){ lab(14,22,'Choose wire EDM in panel 04.','#8d9aa4'); return; }
+  const B=E.blocks[Math.min(EDMB,E.blocks.length-1)], L=B.L, H=B.H, e=p.lead, k=ZZ().k;
+  const s0=Math.min((w-110)/B.Lb, (h-150)/(L+H+2*e)), s=s0*k;
+  const bx=(w-B.Lb*s0)/2, sideTop=70, topTop=sideTop+L*s0+40;
+  const SX=x=>zx(bx+x*s0), SZ=z=>zy(sideTop+(L-z)*s0), TY=y=>zy(topTop+(H+e-y)*s0);
+  const path=(pts,X,Y)=>{ctx.beginPath(); pts.forEach(([a,b],i)=>i?ctx.lineTo(X(a),Y(b)):ctx.moveTo(X(a),Y(b)));};
+  // side view
+  ctx.fillStyle='rgba(120,130,140,.18)'; ctx.strokeStyle='#5f6b74'; ctx.lineWidth=1;
+  ctx.fillRect(SX(0),SZ(L),B.Lb*s,L*s); ctx.strokeRect(SX(0),SZ(L),B.Lb*s,L*s);
+  B.teeth.forEach((t,i)=>{
+    const hb=B.spec.half(t.rb), ht=B.spec.half(t.rt);
+    path([[t.c-hb,0],[t.c+hb,0],[t.c+ht,L],[t.c-ht,L]],SX,SZ); ctx.closePath();
+    ctx.fillStyle='rgba(111,163,196,.55)'; ctx.fill();
+    if(s*2*Math.min(hb,ht)>16) lab(SX(t.c),SZ(L/2)+4,`T${i+1}`,'#e5edf2','center');
+    if(s*2*Math.min(hb,ht)>14) lab(SX(t.c),SZ(0)-3,t.rb===p.rIn?'r₁':'r₂','#9fb4c2','center');
+  });
+  ctx.strokeStyle='#e0604a'; ctx.lineWidth=1.3;
+  B.cuts.forEach((c,i)=>{ const j=c.flank;
+    ctx.beginPath(); ctx.moveTo(SX(c.bot[j][0]),SZ(0)); ctx.lineTo(SX(c.top[j][0]),SZ(L)); ctx.stroke();
+    if(B.P*s>22) lab(SX(c.top[j][0]),SZ(L)-5,String(i+1),'#e0604a','center'); });
+  lab(SX(0),SZ(L)-22,`side · the wire leans ±${Math.abs(B.cuts[0].taper).toFixed(2)}° in this plane · stack ${L.toFixed(2)} mm`,'#7d8a94');
+  // top view
+  ctx.fillStyle='rgba(120,130,140,.12)'; ctx.strokeStyle='#5f6b74'; ctx.lineWidth=1;
+  ctx.fillRect(SX(0),TY(H),B.Lb*s,H*s); ctx.strokeRect(SX(0),TY(H),B.Lb*s,H*s);
+  for(const t of B.teeth){
+    const R=t.bot.filter(q=>q[1]>=0&&q[1]<=H);
+    path([...R.map(([x,y])=>[t.c+x,y]), ...R.slice().reverse().map(([x,y])=>[t.c-x,y])],SX,TY); ctx.closePath();
+    ctx.fillStyle='rgba(111,163,196,.35)'; ctx.fill();
+  }
+  for(const c of B.cuts){
+    ctx.strokeStyle='#e0604a'; ctx.lineWidth=1.3; ctx.setLineDash([]); path(c.bot,SX,TY); ctx.stroke();
+    ctx.strokeStyle='#5aa0e6'; ctx.lineWidth=1; ctx.setLineDash([4,3]); path(c.top,SX,TY); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  lab(SX(0),TY(H+e)-8,`top · paths run ${e} mm past each edge of the ${H.toFixed(1)} mm strip`,'#7d8a94');
+  band(w,h);
+  lab(14,22,`Wire EDM · ${B.name==='body'?'tooth':'shoe-plate'} block ${B.Lb.toFixed(1)} × ${H.toFixed(1)} × ${L.toFixed(1)} mm · ${B.m} per block · ${B.cuts.length} cuts · ${B.shared?'shared':'separate'} cuts`,'#8d9aa4');
+  lab(w-14,22,`pitch ${B.P.toFixed(3)} · kerf ${B.kerf.toFixed(3)} mm`,'#7d8a94','right');
+  legend(w,h,[['bottom contour (z = 0)','#e0604a'],['top contour (z = L)','#5aa0e6'],['tooth','#8fb9d2']]);
+}
+
 let drag=null, pinch=null;
 const PT=new Map();                                   // live touches, for two-finger zoom
 function zoomAt(z,k2,mx,my){ const f=k2/z.k; z.px=mx-VW/2-(mx-VW/2-z.px)*f; z.py=my-VH/2-(my-VH/2-z.py)*f; z.k=k2; }
@@ -1378,6 +1728,8 @@ function setView(v){
   VIEW=v;
   syncTabs();
   $('tabFrame').setAttribute('aria-selected',String(v==='frame'));
+  $('tabEdm').setAttribute('aria-selected',String(v==='edm'));
+  $('tabEdmB').hidden=!(v==='edm'&&STATE&&STATE.E&&STATE.E.blocks.length>1);
   $('tab3D').setAttribute('aria-selected',String(v==='3d'));
   $('tabStack').setAttribute('aria-selected',String(v==='stack'));
   $('tabParts').setAttribute('aria-selected',String(v==='parts'));
@@ -1391,6 +1743,8 @@ $('tabStack').onclick=()=>setView('stack');
 $('tabParts').onclick=()=>setView('parts');
 $('tabSheet').onclick=()=>setView('sheet');
 $('tabFrame').onclick=()=>setView('frame');
+$('tabEdm').onclick=()=>setView('edm');
+$('tabEdmB').onclick=()=>{ EDMB=EDMB?0:1; $('tabEdmB').textContent=EDMB?'Body block':'Shoe block'; draw(); };
 $('fileSel').addEventListener('change',draw);
 
 /* ============================================================
@@ -1429,13 +1783,15 @@ let DL=null;
 (async()=>{ try{ DL=await window.claude?.use?.('downloads'); }catch(e){ DL=null; } })();
 function flash(b,t){const o=b.textContent;b.textContent=t;b.disabled=true;setTimeout(()=>{b.textContent=o;b.disabled=false;},1400);}
 async function deliver(list,zipName,btn,mime){
+  // the hosted viewer accepts only some extensions, so anything else travels in a zip there
+  if(DL && list.length===1 && !/\.(svg|csv)$/i.test(list[0].name)){ zipName=list[0].name.replace(/\.[^.]+$/,'')+'.zip'; list=[list[0],{name:'README.txt',text:'Unzip to get '+list[0].name+'.\n'}]; }
   const one=list.length===1;
   if(DL){
     try{ await DL.save(one?{filename:list[0].name,data:list[0].text}:{filename:zipName,data:zip(list)}); flash(btn,'Saved'); }
     catch(e){ flash(btn, e&&e.code==='declined'?'Cancelled':'Failed'); }
     return;
   }
-  const blob=one?new Blob([list[0].text],{type:mime||'image/svg+xml'}):zip(list);
+  const blob=one?new Blob([list[0].text],{type:mime||(/\.svg$/i.test(list[0].name)?'image/svg+xml':'application/octet-stream')}):zip(list);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob); a.download=one?list[0].name:zipName;
   document.body.appendChild(a); a.click(); a.remove();
@@ -1448,7 +1804,7 @@ $('btnSave').onclick=()=>{
 };
 $('btnAll').onclick=()=>{
   if(!STATE||!STATE.files.length) return;
-  deliver(STATE.files,'laminations_svg.zip',$('btnAll'));
+  deliver(STATE.files,STATE.E?'edm_block.zip':'laminations_svg.zip',$('btnAll'));
 };
 $('btnFrame').onclick=()=>{
   if(!STATE||!STATE.frameFiles.length) return flash($('btnFrame'),'Frame off');

@@ -1,6 +1,6 @@
 # Lamination Cutter
 
-**Fibre-laser SVGs for the teeth of a yokeless (YASA) axial-flux stator, with an optional 3D-printed frame to hold them.**
+**Fibre-laser SVGs, or wire-EDM programs, for the teeth of a yokeless (YASA) axial-flux stator, with an optional 3D-printed frame to hold them.**
 
 Each tooth is built from flat electrical-steel sheets stacked outward in the radial direction. Every sheet is then a plain rectangle and the tooth comes out as a trapezoidal prism, so a fibre laser cuts it from ordinary 0.2–0.35 mm strip with no forming or bending.
 
@@ -47,6 +47,7 @@ Each class is cut at the width for its mid radius, so the iron area stays the sa
   - **Integrated:** each sheet is cut as an I-shape.
   - **Separate:** end plates are bonded on after winding, which keeps the needle winder usable.
 - **Micro-tabs, on by default:** two small bridges of uncut steel per part, always on an edge with no job in the finished machine.
+- **Wire EDM, optional:** stack long strips into a block and cut several teeth at once. The wire leans with each flank, so every sheet is exact, and teeth alternate head-to-tail so one cut can serve two teeth. Output is DXF (bottom and top contours) plus an operator drawing and a cut list.
 - **Retention frame, on by default:** a mid-height tab on every sheet, plus a two-piece printed frame that clamps the tabs with no play. It is exported as OpenSCAD, DXF and SVG.
 
 ![Retention frame: top view and section](docs/images/view-frame.png)
@@ -76,12 +77,21 @@ All five views zoom (mouse wheel or pinch) and pan (drag). Parts and Sheet show 
 | ![](docs/images/view-sheet.png) | ![](docs/images/view-frame.png) |
 | The nest exactly as it will be cut | One frame half from its mating face, and a section through a tooth (only with the frame on) |
 
+## Wire EDM
+
+Set **Method** to *wire EDM* in panel 04. Strips as wide as the tooth height are stacked to the radial length and clamped into one block. The tilted wire then cuts the teeth out together: 13 cuts make 12 true-taper teeth on the defaults.
+
+![Wire EDM view](docs/images/view-edm-shared.png)
+
+[More in the manual →](docs/MANUAL.md#13-wire-edm)
+
 ## Output
 
 | File | Contents |
 |---|---|
 | `laminations_sheet01.svg` | Cut (red) and engrave (blue) layers, in mm. One tooth by default |
 | `parts_list.csv` | Every part type: widths, height, quantity per tooth and per stator, radial span, flank error |
+| `edm_*.dxf`, `edm_*_drawing.svg`, `edm_*_cuts.csv` | Wire EDM only: bottom and top wire paths, the operator drawing, and the cut table |
 | `retention_frame.zip` | `frame_half.scad`, `frame_half.dxf`, `frame_half.svg`: one frame half, to be printed twice |
 
 ## Limitations
