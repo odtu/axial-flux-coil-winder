@@ -1644,11 +1644,29 @@ function drawEdm(w,h){
     if(s*2*Math.min(hb,ht)>16) lab(SX(t.c),SZ(L/2)+4,`T${i+1}`,'#e5edf2','center');
     if(s*2*Math.min(hb,ht)>14) lab(SX(t.c),SZ(0)-3,t.rb===p.rIn?'r₁':'r₂','#9fb4c2','center');
   });
-  ctx.strokeStyle='#e0604a'; ctx.lineWidth=1.3;
+  // the laminations: one strip per sheet thickness, up the stack
+  const tz=L/B.n, gapPx=tz*s, every=Math.max(1,Math.ceil(3/gapPx));
+  ctx.save(); ctx.beginPath(); ctx.rect(SX(0),SZ(L),B.Lb*s,L*s); ctx.clip();
+  if(gapPx>=4){                                    // close enough to see each sheet: shade every other one
+    ctx.fillStyle='rgba(10,14,18,.22)';
+    for(let i=1;i<B.n;i+=2) ctx.fillRect(SX(0),SZ((i+1)*tz),B.Lb*s,gapPx);
+  }
+  ctx.strokeStyle=`rgba(205,220,232,${gapPx>=4?.55:.30})`; ctx.lineWidth=gapPx>=4?.8:.6;
+  ctx.beginPath();
+  for(let i=every;i<B.n;i+=every){ const y=SZ(i*tz); ctx.moveTo(SX(0),y); ctx.lineTo(SX(B.Lb),y); }
+  ctx.stroke(); ctx.restore();
+  // each cut removes a kerf-wide slice of every sheet; show it once it is wide enough to see
+  if(B.kerf*s>=1.5){
+    ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--view').trim()||'#13161a';
+    for(const c of B.cuts){ const j=c.flank, hk=B.kerf/2;
+      path([[c.bot[j][0]-hk,0],[c.bot[j][0]+hk,0],[c.top[j][0]+hk,L],[c.top[j][0]-hk,L]],SX,SZ); ctx.closePath(); ctx.fill(); }
+  }
+  ctx.strokeStyle='#e0604a'; ctx.lineWidth=B.kerf*s>=1.5?1:1.3;
   B.cuts.forEach((c,i)=>{ const j=c.flank;
     ctx.beginPath(); ctx.moveTo(SX(c.bot[j][0]),SZ(0)); ctx.lineTo(SX(c.top[j][0]),SZ(L)); ctx.stroke();
     if(B.P*s>22) lab(SX(c.top[j][0]),SZ(L)-5,String(i+1),'#e0604a','center'); });
-  lab(SX(0),SZ(L)-22,`side · the wire leans ±${Math.abs(B.cuts[0].taper).toFixed(2)}° in this plane · stack ${L.toFixed(2)} mm`,'#7d8a94');
+  lab(SX(0),SZ(L)-22,`side · wire leans ±${Math.abs(B.cuts[0].taper).toFixed(2)}° · ${B.n} sheets of ${tz.toFixed(2)} mm`+
+    (every>1?` (every ${every===2?'2nd':every===3?'3rd':every+'th'} drawn — zoom in for all)`:'')+` · kerf ${B.kerf.toFixed(2)}`,'#7d8a94');
   // top view
   ctx.fillStyle='rgba(120,130,140,.12)'; ctx.strokeStyle='#5f6b74'; ctx.lineWidth=1;
   ctx.fillRect(SX(0),TY(H),B.Lb*s,H*s); ctx.strokeRect(SX(0),TY(H),B.Lb*s,H*s);
