@@ -87,9 +87,12 @@ Set **Method** to *wire EDM* in panel 04. Strips as wide as the tooth height are
 
 ## Output
 
+**Share link** copies a link that opens the tool with your settings, ready to forward.
+
 | File | Contents |
 |---|---|
 | `laminations_sheet01.svg` | Cut (red) and engrave (blue) layers, in mm. One tooth by default |
+| `laminations_sheet01.dxf` | The same outlines as R12 DXF: fillets as true arcs, layers `CUT` and `ENGRAVE`. Use the **Download DXF** button
 | `parts_list.csv` | Every part type: widths, height, quantity per tooth and per stator, radial span, flank error |
 | `edm_*.dxf`, `edm_*_drawing.svg`, `edm_*_cuts.csv` | Wire EDM only: bottom and top wire paths, the operator drawing, and the cut table |
 | `retention_frame.zip` | `frame_half.scad`, `frame_half.dxf`, `frame_half.svg`: one frame half, to be printed twice |

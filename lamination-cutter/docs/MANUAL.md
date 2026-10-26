@@ -135,7 +135,7 @@ See [§7](#7-pole-shoes) for which form to choose.
 | **Engrave index on each part** | on | Stroke the class number onto each part |
 | ↳ **min part length** | 4 mm | Parts narrower than this are not engraved |
 | ↳ **digit height** | 3 mm | Height of the seven-segment digits |
-| **Cut / Engrave colour** | red / blue | Stroke colours, for mapping to laser layers |
+| **Cut / Engrave colour** | red / blue | Stroke colours, for mapping to laser layers (SVG) |
 
 ### 05 — Sheet
 
@@ -433,6 +433,8 @@ On this small stator the inner bolt heads sit only 2.7 mm from the tooth, inside
 
 ## 10. Output files
 
+**Share link** copies a link that opens the tool with your current settings. Only fields that differ from their defaults go into the link, for example `…/lamination-cutter/?rOut=39&rIn=25&wMode=widths&wIn=6.875&wOut=14.378&h=25`. Any field id from the form works as a parameter, and checkboxes take `1` or `0`.
+
 For the wire EDM files, see [§13](#edm-files).
 
 ### Laminations: `laminations_sheetNN.svg`
@@ -442,7 +444,19 @@ For the wire EDM files, see [§13](#edm-files).
 - Plain rectangles are written as `<rect>` with `rx` for the corner radius. Shaped parts, and every part when micro-tabs are on, are written as `<path>` with arcs.
 - The `<desc>` element records the stator, sheet, kerf, tabs and how many times to run the file.
 
-**Download SVG** saves the file chosen in the dropdown. **All · zip** appears when there is more than one file.
+**Download SVG** saves the sheet chosen in the dropdown, and **Download DXF** next to it saves the same sheet as DXF. **All · zip** appears when there is more than one sheet, and holds every sheet in both formats.
+
+### Laminations: `laminations_sheetNN.dxf`
+
+**Download DXF**, next to Download SVG, saves the same geometry as the SVG:
+
+- R12 (`AC1009`), millimetres, y up, with the sheet's bottom-left corner at the origin.
+- Layer `CUT` (red) holds one polyline per part outline. The corner fillets are true arcs, stored as polyline bulges, so nothing is faceted.
+- With micro-tabs on, each outline is broken at its bridges into open polylines. The gaps sit exactly where they are in the SVG.
+- Layer `ENGRAVE` (blue) holds the index digits as plain lines.
+- Kerf compensation is already applied, as in the SVG. Set the laser software's own offset to 0.
+
+If your software turns bulges into straight chords, check that it imports arcs in R12 polylines; most fibre-laser packages do.
 
 ### Parts list: `parts_list.csv`
 
